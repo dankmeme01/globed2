@@ -7,6 +7,7 @@
 #include "hooks/level_select_layer.hpp"
 
 using namespace geode::prelude;
+using namespace util::ui;
 
 bool PlayerListCell::init(const PlayerRoomPreviewAccountData& data) {
     if (!CCLayer::init()) return false;
@@ -32,15 +33,20 @@ bool PlayerListCell::init(const PlayerRoomPreviewAccountData& data) {
 
     // name label
 
-    Build<CCMenu>::create()
-        .pos(0.f, 0.f)
-        .parent(this)
-        .store(menu);
-
     ccColor3B nameColor = ccc3(255, 255, 255);
     if (data.specialUserData) {
         nameColor = data.specialUserData->nameColor;
     }
+
+    CCMenu* badgeWrapper = Build<CCMenu>::create()
+        .pos(simplePlayer->getPositionX() + simplePlayer->m_firstLayer->getScaledContentSize().width / 2 + 10.f, CELL_HEIGHT / 2)
+        .layout(RowLayout::create()->setGap(5.f)->setAxisAlignment(AxisAlignment::Start))
+        .anchorPoint(0.f, 0.5f)
+        .contentSize(RoomPopup::LIST_WIDTH, CELL_HEIGHT)
+        .scale(1.f)
+        .parent(this)
+        .id("badge-wrapper"_spr)
+        .collect();
 
     auto* label = Build<CCLabelBMFont>::create(data.name.c_str(), "bigFont.fnt")
         .color(nameColor)
@@ -51,9 +57,16 @@ bool PlayerListCell::init(const PlayerRoomPreviewAccountData& data) {
 
     auto* btn = Build<CCMenuItemSpriteExtra>::create(label, this, menu_selector(PlayerListCell::onOpenProfile))
         .pos(simplePlayer->getPositionX() + label->getScaledContentSize().width / 2.f + 25.f, CELL_HEIGHT / 2.f)
-        .parent(menu)
+        .parent(badgeWrapper)
         .collect();
     btn->m_scaleMultiplier = 1.1f;
+
+    if (data.specialUserData.has_value()) {
+        auto badge = createBadgeIfSpecial(nameColor, CCPoint{0.f, 0.f});
+        if (badge != nullptr) badgeWrapper->addChild(badge);
+    }
+    badgeWrapper->updateLayout();
+
     if (this->data.levelId != 0) {
         Build<CCSprite>::createSpriteName("GJ_playBtn2_001.png")
             .scale(0.30f)

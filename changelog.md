@@ -8,6 +8,7 @@
 
 ## v1.3.5
 
+* Added Badges (Userlist, Roomlist, In Game, Voice Overlay)
 * Fix crashes and other weird behavior when opening profiles of others when in a level
 * ^ also makes it impossible to open another level while already in a level
 * Fix issues with zip file texture packs

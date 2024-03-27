@@ -7,8 +7,10 @@
 #include <util/rng.hpp>
 #include <util/math.hpp>
 #include <util/debug.hpp>
+#include <util/ui.hpp>
 
 using namespace geode::prelude;
+using namespace util::ui;
 
 bool ComplexVisualPlayer::init(RemotePlayer* parent, bool isSecond) {
     if (!CCNode::init()) return false;
@@ -33,12 +35,22 @@ bool ComplexVisualPlayer::init(RemotePlayer* parent, bool isSecond) {
 
     playerIcon->setRemotePlayer(this);
 
+    badgeWrapper = Build<CCMenu>::create()
+        .pos(0.f, 0.f)
+        .scale(1.f)
+        .contentSize(1.f, 1.f)
+        .layout(RowLayout::create()->setGap(5.f)->setAxisAlignment(AxisAlignment::Start)->setAutoScale(false))
+        .anchorPoint(0.f, 0.f)
+        .parent(this)
+        .id("badge-wrapper"_spr)
+        .collect();
+
     Build<CCLabelBMFont>::create(data.name.c_str(), "chatFont.fnt")
         .opacity(static_cast<unsigned char>(settings.players.nameOpacity * 255.f))
         .visible(settings.players.showNames && (!isSecond || settings.players.dualName))
         .store(playerName)
-        .pos(0.f, 25.f)
-        .parent(this);
+        .pos(0.f, 0.f)
+        .parent(badgeWrapper);
 
     this->updateIcons(data.icons);
 
@@ -46,7 +58,7 @@ bool ComplexVisualPlayer::init(RemotePlayer* parent, bool isSecond) {
         statusIcons = Build<PlayerStatusIcons>::create(playerOpacity)
             .scale(0.8f)
             .anchorPoint(0.5f, 0.f)
-            .pos(0.f, settings.players.showNames ? 40.f : 25.f)
+            .pos(0.f, settings.players.showNames ? 15.f : 0.f)
             .parent(this)
             .id("status-icons"_spr)
             .collect();
@@ -113,6 +125,7 @@ void ComplexVisualPlayer::updateData(
 
     playerIcon->setPosition(data.position);
     playerIcon->setRotation(data.rotation);
+    badgeWrapper->setPosition(data.position + CCPoint{0.f, 25.f});
 
     float innerRot = data.isSideways ? (data.isUpsideDown ? 90.f : -90.f) : 0.f;
     playerIcon->m_mainLayer->setRotation(innerRot);
@@ -127,7 +140,6 @@ void ComplexVisualPlayer::updateData(
     }
 
     // set the pos for status icons and name (ask rob not me)
-    playerName->setPosition(data.position + CCPoint{0.f, 25.f});
     if (statusIcons) {
         statusIcons->setPosition(data.position + CCPoint{0.f, playerName->isVisible() ? 40.f : 25.f});
     }
@@ -267,6 +279,16 @@ void ComplexVisualPlayer::updateName() {
     playerName->setString(parent->getAccountData().name.c_str());
     auto& sud = parent->getAccountData().specialUserData;
     sud.has_value() ? playerName->setColor(sud->nameColor) : playerName->setColor({255, 255, 255});
+
+    if (sud.has_value()) {
+        auto badge = createBadgeIfSpecial(sud->nameColor, badgeWrapper->getPosition());
+        if (badge != nullptr) {
+            badgeWrapper->setContentWidth(playerName->getScaledContentSize().width);
+            badgeWrapper->addChild(badge);
+        }
+    }
+
+    badgeWrapper->updateLayout();
 }
 
 void ComplexVisualPlayer::updateIconType(PlayerIconType newType) {

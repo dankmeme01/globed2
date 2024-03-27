@@ -152,4 +152,25 @@ namespace util::ui {
 
         return nullptr;
     }
+
+    uibuilder::Build<cocos2d::CCSprite> createBadge(std::string badgePNG, cocos2d::CCPoint pos, std::string id) {
+        log::info("creating badge");
+
+        auto badgeSprite = Build<cocos2d::CCSprite>::createSpriteName(badgePNG.c_str())
+            .scale(1.f)
+            .pos(pos)
+            .id(id);
+
+        return badgeSprite.collect();
+    }
+
+    CCSprite* createBadgeIfSpecial(ccColor3B color, cocos2d::CCPoint pos) {
+        if (color == ccc3(15, 239, 195)) return createBadge("role-mod.png"_spr, pos, "globed-mod-badge").collect();
+        if (color == ccc3(233, 30, 99)) return createBadge("role-admin.png"_spr, pos, "globed-admin-badge").collect();
+        if (color == ccc3(52, 152, 219)) return createBadge("role-helper.png"_spr, pos, "globed-helper-badge").collect();
+        if (color == ccc3(154, 88, 255)) return createBadge("role-supporter.png"_spr, pos, "globed-supporter-badge").collect();
+        if (color == ccc3(248, 0, 255)) return createBadge("role-booster.png"_spr, pos, "globed-booster-badge").collect();
+
+        return nullptr;
+    }
 }

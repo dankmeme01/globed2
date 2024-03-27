@@ -2,6 +2,7 @@
 
 #include "userlist.hpp"
 #include "actions_popup.hpp"
+#include "ui/menu/room/room_popup.hpp"
 #include <audio/voice_playback_manager.hpp>
 #include <data/packets/client/admin.hpp>
 #include <data/packets/server/admin.hpp>
@@ -17,6 +18,7 @@
 #include <util/ui.hpp>
 
 using namespace geode::prelude;
+using namespace util::ui;
 
 bool GlobedUserCell::init(const PlayerStore::Entry& entry, const PlayerAccountData& data) {
     if (!CCLayer::init()) return false;
@@ -54,26 +56,43 @@ bool GlobedUserCell::init(const PlayerStore::Entry& entry, const PlayerAccountDa
         nameColor = data.specialUserData->nameColor;
     }
 
+    badgeWrapper = Build<CCMenu>::create()
+        .pos(sp->getPositionX() + sp->m_firstLayer->getScaledContentSize().width / 2 + 10.f, CELL_HEIGHT / 2)
+        .layout(RowLayout::create()->setGap(5.f)->setAxisAlignment(AxisAlignment::Start)->setAutoScale(false))
+        .anchorPoint(0.f, 0.5f)
+        .contentSize(RoomPopup::LIST_WIDTH / 2, CELL_HEIGHT / 2)
+        .scale(1.f)
+        .parent(this)
+        .id("badge-wrapper"_spr)
+        .collect();
+    
     auto* nameLabel = Build<CCLabelBMFont>::create(data.name.data(), "bigFont.fnt")
         .color(nameColor)
-        .limitLabelWidth(140.f, 0.5f, 0.1f)
+        .limitLabelWidth(125.f, 0.5f, 0.1f)
         .collect();
 
     auto* nameButton = Build<CCMenuItemSpriteExtra>::create(nameLabel, this, menu_selector(GlobedUserCell::onOpenProfile))
-        // goodness
-        .pos(sp->getPositionX() + nameLabel->getScaledContentSize().width / 2.f + 15.f, CELL_HEIGHT / 2.f)
-        .parent(menu)
+        // thank god no more
+        .pos(nameLabel->getPosition())
+        .parent(badgeWrapper)
         .collect();
     nameButton->m_scaleMultiplier = 1.1f;
 
+    if (data.specialUserData.has_value()) {
+        auto badge = createBadgeIfSpecial(nameColor, badgeWrapper->getPosition());
+        if (badge != nullptr) badgeWrapper->addChild(badge);
+    }
+
     // percentage label
     Build<CCLabelBMFont>::create("", "goldFont.fnt")
-        .pos(nameButton->getPosition() + nameButton->getScaledContentSize() / 2.f + CCPoint{3.f, -3.f})
+        .pos(nameButton->getPosition() + nameButton->getScaledContentSize() / 2.f + CCPoint{20.f, 0.f})
         .anchorPoint({0.f, 0.5f})
         .scale(0.4f)
-        .parent(this)
+        .parent(badgeWrapper)
         .id("percentage-label"_spr)
         .store(percentageLabel);
+
+    badgeWrapper->updateLayout();
 
     this->makeButtons();
 
@@ -294,6 +313,8 @@ void GlobedUserCell::makeButtons() {
     buttonsWrapper->setContentSize({maxWidth, 20.f});
 
     buttonsWrapper->updateLayout();
+    
+    badgeWrapper->updateLayout();
 }
 
 void GlobedUserCell::onOpenProfile(CCObject*) {
