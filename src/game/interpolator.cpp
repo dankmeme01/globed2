@@ -98,17 +98,13 @@ void PlayerInterpolator::tick(float dt) {
     for (auto& [playerId, player] : players) {
         if (player.totalFrames < 2) continue;
 
-        float realFrameDelta = player.newerFrame.timestamp - player.olderFrame.timestamp;
-        // this makes absolutely no sense im fucking fuming right now
-        // why the fuck does a static non-changing number work better than an actual calculation
-        float fakeFrameDelta = settings.expectedDelta;
-        if (realFrameDelta == 0.f) {
+        float frameDelta = player.newerFrame.timestamp - player.olderFrame.timestamp;
+        if (frameDelta == 0.f) {
             LerpLogger::get().logLerpSkip(playerId, this->getLocalTs(), player.timeCounter, player.interpolatedState.player1);
             continue;
         }
 
-        float lerpRatio = (player.timeCounter - player.olderFrame.timestamp) / fakeFrameDelta;
-
+        float lerpRatio = (player.timeCounter - player.olderFrame.timestamp) / frameDelta;
         lerpPlayer(player.olderFrame.visual, player.newerFrame.visual, player.interpolatedState, lerpRatio);
 
         LerpLogger::get().logLerpOperation(playerId, this->getLocalTs(), player.timeCounter, player.interpolatedState.player1);

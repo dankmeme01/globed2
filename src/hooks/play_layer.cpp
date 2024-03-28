@@ -27,15 +27,6 @@ constexpr float PROXIMITY_VOICE_LIMIT = 1200.f;
 constexpr float VOICE_OVERLAY_PAD_X = 5.f;
 constexpr float VOICE_OVERLAY_PAD_Y = 20.f;
 
-float adjustLerpTimeDelta(float dt) {
-    // TODO: fix vsync
-    auto* dir = CCDirector::get();
-    return dir->getAnimationInterval();
-
-    // uncomment and watch the world blow up
-    // return dt;
-}
-
 /* Hooks */
 
 bool GlobedPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
@@ -591,7 +582,11 @@ void GlobedPlayLayer::selPeriodicalUpdate(float) {
 }
 
 // selUpdate - runs every frame, increments the non-decreasing time counter, interpolates and updates players
-void GlobedPlayLayer::selUpdate(float rawdt) {
+void GlobedPlayLayer::selUpdate(float timescaledDt) {
+    // timescale silently changing dt isn't very good when doing network interpolation >_>
+    // since timeCounter needs to agree with everyone else on how long a second is!
+    float dt = timescaledDt / CCScheduler::get()->getTimeScale();
+
     auto self = static_cast<GlobedPlayLayer*>(PlayLayer::get());
 
     if (!self) return;
@@ -611,7 +606,6 @@ void GlobedPlayLayer::selUpdate(float rawdt) {
         static_cast<uint32_t>(self->m_level->isPlatformer() ? self->m_level->m_bestTime : self->m_level->m_normalPercent)
     );
 
-    float dt = adjustLerpTimeDelta(rawdt);
     self->m_fields->timeCounter += dt;
 
     self->m_fields->interpolator->tick(dt);
