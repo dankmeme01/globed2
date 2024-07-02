@@ -741,7 +741,7 @@ void GlobedGJBGL::updateDRPC() {
         {"smallImageText", ""},
         {"useTime", true},
         {"shouldResetTime", false},
-        {"largeImageKey", "https://github.com/HJfod/globed-site/blob/main/public/logo.png?raw=true"},
+        {"largeImageKey", "https://raw.githubusercontent.com/dankmeme01/globed2/main/logo.png"},
         {"largeImageText", ""},
         {"joinSecret", std::to_string(m_level->m_levelID.value())},
         {"partyMax", m_fields->players.size() + 1}
