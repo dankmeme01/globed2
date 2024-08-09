@@ -8,6 +8,7 @@ class $modify(GlobedPlayLayer, PlayLayer) {
         GameObject* antiCheat = nullptr;
         bool ignoreNoclip = false;
         bool insideDestroyPlayer = false;
+        bool oldShowProgressBar;
     };
 
     static void onModify(auto& self) {
