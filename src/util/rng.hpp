@@ -10,6 +10,8 @@ namespace util::rng {
         Random();
 
     public:
+        std::mt19937_64& getEngine();
+
         template <typename T>
         T generate();
 

@@ -1,40 +1,69 @@
 #include "name_label.hpp"
 
 #include <util/ui.hpp>
+#include <managers/role.hpp>
 
 using namespace geode::prelude;
 
-bool GlobedNameLabel::init(const std::string& name, cocos2d::CCSprite* badgeSprite, const RichColor& nameColor) {
+bool GlobedNameLabel::init(const std::string& name, const std::vector<std::string>& badges, const RichColor& nameColor, bool bigFont) {
     if (!CCNode::init()) return false;
+
+    this->bigFont = bigFont;
 
     this->setAnchorPoint({0.5f, 0.5f});
     this->setLayout(RowLayout::create()->setGap(4.f)->setAutoScale(false));
-    this->setContentWidth(150.f);
-    this->updateData(name, badgeSprite, nameColor);
+    this->setContentWidth(300.f);
+    this->updateData(name, badges, nameColor);
 
     return true;
 }
 
-void GlobedNameLabel::updateData(const std::string& name, cocos2d::CCSprite* badgeSprite, const RichColor& nameColor) {
+void GlobedNameLabel::updateData(const std::string& name, const std::vector<std::string>& badges, const RichColor& nameColor) {
     this->updateName(name);
-    this->updateBadge(badgeSprite);
+    this->updateBadges(badges);
     this->updateColor(nameColor);
 }
 
 void GlobedNameLabel::updateData(const std::string& name, const SpecialUserData& sud) {
-    this->updateData(name, util::ui::createBadgeIfSpecial(sud), util::ui::getNameRichColor(sud));
+    std::vector<std::string> badgeList;
+    if (sud.roles) {
+        badgeList = RoleManager::get().getBadgeList(sud.roles.value());
+    }
+    this->updateData(name, badgeList, util::ui::getNameRichColor(sud));
 }
 
-void GlobedNameLabel::updateBadge(cocos2d::CCSprite* badgeSprite) {
-    if (badge) badge->removeFromParent();
+void GlobedNameLabel::updateBadge(cocos2d::CCSprite* badge) {
+    if (badgeContainer) badgeContainer->removeFromParent();
+    badgeContainer = nullptr;
 
-    badge = badgeSprite;
+    if (!badge) return;
 
-    if (badge) {
-        util::ui::rescaleToMatch(badge, util::ui::BADGE_SIZE);
-        badge->setZOrder(1);
-        this->addChild(badge);
-    }
+    util::ui::rescaleToMatch(badge, util::ui::BADGE_SIZE);
+
+    Build<CCNode>::create()
+        .parent(this)
+        .store(badgeContainer)
+        .child(badge);
+
+    badge->setPosition(badge->getScaledContentSize() / 2.f);
+    badgeContainer->setContentSize(badge->getScaledContentSize());
+
+    this->updateLayout();
+}
+
+void GlobedNameLabel::updateBadges(const std::vector<std::string>& badges) {
+    if (badgeContainer) badgeContainer->removeFromParent();
+    badgeContainer = nullptr;
+
+    if (badges.empty()) return;
+
+    Build<CCNode>::create()
+        .contentSize(5.f * (badges.size() - 1) + badges.size() * util::ui::BADGE_SIZE.width, 0.f)
+        .layout(RowLayout::create()->setGap(5.f))
+        .parent(this)
+        .store(badgeContainer);
+
+    util::ui::addBadgesToMenu(badges, badgeContainer, 1);
 
     this->updateLayout();
 }
@@ -50,13 +79,13 @@ void GlobedNameLabel::updateName(const char* name) {
             .zOrder(-2)
             .store(labelContainer);
 
-        Build<CCLabelBMFont>::create("", "chatFont.fnt")
+        Build<CCLabelBMFont>::create("", bigFont ? "bigFont.fnt" : "chatFont.fnt")
             .zOrder(-1)
             .anchorPoint(0.f, 0.f)
             .parent(labelContainer)
             .store(label);
 
-        Build<CCLabelBMFont>::create("", "chatFont.fnt")
+        Build<CCLabelBMFont>::create("", bigFont ? "bigFont.fnt" : "chatFont.fnt")
             .zOrder(-2)
             .color(0, 0, 0)
             .anchorPoint(0.f, 0.0f)
@@ -78,7 +107,13 @@ void GlobedNameLabel::updateOpacity(float opacity) {
 
 void GlobedNameLabel::updateOpacity(unsigned char opacity) {
     if (label) label->setOpacity(opacity);
-    if (badge) badge->setOpacity(opacity);
+
+    if (badgeContainer) {
+        for (auto child : CCArrayExt<CCSprite*>(badgeContainer->getChildren())) {
+            child->setOpacity(opacity);
+        }
+    }
+
     if (labelShadow) labelShadow->setOpacity(opacity * 0.75);
 }
 
@@ -88,9 +123,9 @@ void GlobedNameLabel::updateColor(const RichColor& color) {
     color.animateLabel(label);
 }
 
-GlobedNameLabel* GlobedNameLabel::create(const std::string& name, cocos2d::CCSprite* badgeSprite, const RichColor& nameColor) {
+GlobedNameLabel* GlobedNameLabel::create(const std::string& name, const std::vector<std::string>& roles, const RichColor& color, bool bigFont) {
     auto ret = new GlobedNameLabel;
-    if (ret->init(name, badgeSprite, nameColor)) {
+    if (ret->init(name, roles, color, bigFont)) {
         ret->autorelease();
         return ret;
     }
@@ -99,10 +134,28 @@ GlobedNameLabel* GlobedNameLabel::create(const std::string& name, cocos2d::CCSpr
     return nullptr;
 }
 
-GlobedNameLabel* GlobedNameLabel::create(const std::string& name, const SpecialUserData& sud) {
-    return create(name, util::ui::createBadgeIfSpecial(sud), util::ui::getNameRichColor(sud));
+GlobedNameLabel* GlobedNameLabel::create(const std::string& name, cocos2d::CCSprite* badge, const RichColor& color, bool bigFont) {
+    auto ret = new GlobedNameLabel;
+    if (ret->init(name, {}, color, bigFont)) {
+        ret->autorelease();
+        ret->updateBadge(badge);
+        return ret;
+    }
+
+
+    delete ret;
+    return nullptr;
 }
 
-GlobedNameLabel* GlobedNameLabel::create(const std::string& name) {
-    return create(name, static_cast<CCSprite*>(nullptr), RichColor({255, 255, 255}));
+GlobedNameLabel* GlobedNameLabel::create(const std::string& name, const SpecialUserData& sud, bool bigFont) {
+    std::vector<std::string> badgeList;
+    if (sud.roles) {
+        badgeList = RoleManager::get().getBadgeList(sud.roles.value());
+    }
+
+    return create(name, badgeList, util::ui::getNameRichColor(sud), bigFont);
+}
+
+GlobedNameLabel* GlobedNameLabel::create(const std::string& name, bool bigFont) {
+    return create(name, std::vector<std::string>{}, RichColor({255, 255, 255}), bigFont);
 }

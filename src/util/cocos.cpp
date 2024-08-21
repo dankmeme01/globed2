@@ -311,7 +311,7 @@ namespace util::cocos {
                 {
                     auto _ = cocosWorkMutex.lock();
 
-                    if (static_cast<HookedGameManager*>(GameManager::get())->m_fields->loadedFrames.contains(plistKey)) {
+                    if (static_cast<HookedGameManager*>(GameManager::get())->fields()->loadedFrames.contains(plistKey)) {
                         preloadLog("already contains, skipping {}", plistKey);
                         return;
                     }
@@ -361,7 +361,7 @@ namespace util::cocos {
                     auto _ = cocosWorkMutex.lock();
 
                     _addSpriteFramesWithDictionary(dict, imgState.texture);
-                    static_cast<HookedGameManager*>(GameManager::get())->m_fields->loadedFrames.insert(plistKey);
+                    static_cast<HookedGameManager*>(GameManager::get())->fields()->loadedFrames.insert(plistKey);
                 }
 
                 dict->release();

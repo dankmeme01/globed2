@@ -14,10 +14,11 @@ GameServerManager::GameServerManager() {
 
 Result<> GameServerManager::addServer(const std::string_view serverId, const std::string_view name, const std::string_view address, const std::string_view region) {
     _data.lock()->servers.erase(std::string(serverId));
-    return this->addOrUpdateServer(serverId, name, address, region);
+    GLOBED_UNWRAP(this->addOrUpdateServer(serverId, name, address, region));
+    return Ok();
 }
 
-Result<> GameServerManager::addOrUpdateServer(const std::string_view serverId_, const std::string_view name, const std::string_view address, const std::string_view region) {
+Result<bool> GameServerManager::addOrUpdateServer(const std::string_view serverId_, const std::string_view name, const std::string_view address, const std::string_view region) {
     auto serverId = std::string(serverId_);
 
     int ping = -1;
@@ -25,8 +26,20 @@ Result<> GameServerManager::addOrUpdateServer(const std::string_view serverId_, 
 
     auto data = _data.lock();
     if (data->servers.contains(serverId)) {
-        ping = data->servers.at(serverId).server.ping;
-        playerCount = data->servers.at(serverId).server.playerCount;
+        auto& server = data->servers.at(serverId).server;
+
+        ping = server.ping;
+        playerCount = server.playerCount;
+
+        // check if the server changed
+        if (
+            server.id == serverId_
+            && server.name == name
+            && server.region == region
+            && server.address == address
+        ) {
+            return Ok(false);
+        }
     }
 
     GameServer server = {
@@ -44,8 +57,7 @@ Result<> GameServerManager::addOrUpdateServer(const std::string_view serverId_, 
 
     data->servers[serverId] = gsdata;
 
-    return Ok();
-
+    return Ok(true);
 }
 
 void GameServerManager::clear() {
@@ -197,6 +209,10 @@ Result<> GameServerManager::loadFromCache() {
         if (result.isErr()) {
             this->clear();
             return Err("invalid game server found when parsing server response");
+        }
+
+        if (result.unwrap()) {
+            this->pendingChanges = true;
         }
     }
 

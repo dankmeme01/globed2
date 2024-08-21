@@ -8,6 +8,7 @@
 #include <managers/settings.hpp>
 #include <managers/profile_cache.hpp>
 #include <managers/friend_list.hpp>
+#include <managers/role.hpp>
 #include <hooks/gjbasegamelayer.hpp>
 #include <hooks/gjgamelevel.hpp>
 #include <ui/general/ask_input_popup.hpp>
@@ -65,10 +66,16 @@ bool GlobedUserCell::init(const PlayerStore::Entry& entry, const PlayerAccountDa
         .store(nameBtn)
         .collect();
 
-    CCSprite* badgeIcon = util::ui::createBadgeIfSpecial(data.specialUserData);
-    if (badgeIcon) {
-        util::ui::rescaleToMatch(badgeIcon, util::ui::BADGE_SIZE);
-        usernameLayout->addChild(badgeIcon);
+    // CCSprite* badgeIcon = util::ui::createBadgeIfSpecial(data.specialUserData);
+    // if (badgeIcon) {
+    //     util::ui::rescaleToMatch(badgeIcon, util::ui::BADGE_SIZE);
+    //     usernameLayout->addChild(badgeIcon);
+    // }
+
+    // badge with s
+    if (data.specialUserData.roles) {
+        std::vector<std::string> badgeVector = RoleManager::get().getBadgeList(data.specialUserData.roles.value());
+        util::ui::addBadgesToMenu(badgeVector, usernameLayout, 1);
     }
 
     if (isFriend) {

@@ -32,8 +32,10 @@ public:
 
     asp::AtomicBool pendingChanges;
 
+    // Returns true if a new server has been added, otherwise false.
     Result<> addServer(const std::string_view serverId, const std::string_view name, const std::string_view address, const std::string_view region);
-    Result<> addOrUpdateServer(const std::string_view serverId, const std::string_view name, const std::string_view address, const std::string_view region);
+    // Returns true if a new server has been added, or the data has changed, false otherwise.
+    Result<bool> addOrUpdateServer(const std::string_view serverId, const std::string_view name, const std::string_view address, const std::string_view region);
     void clear();
     size_t count();
 

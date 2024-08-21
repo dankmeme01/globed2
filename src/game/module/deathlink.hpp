@@ -12,11 +12,10 @@ public:
     void destroyPlayerPost(PlayerObject* player, GameObject* object) override;
     void onUpdatePlayer(int playerId, RemotePlayer* player, const FrameFlags& flags) override;
     void selUpdate(float dt) override;
-    void playerDestroyed(PlayerObject* player, bool unk) override;
 
 private:
     bool oldFastReset = false;
     bool hasBeenKilled = false;
 
-    void notifyDeath();
+    void forceKill();
 };

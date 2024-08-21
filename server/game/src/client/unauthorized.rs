@@ -13,7 +13,7 @@ use globed_shared::{
     rand::{self, Rng},
     warn, SyncMutex, MIN_CLIENT_VERSION, MIN_SUPPORTED_PROTOCOL, SUPPORTED_PROTOCOLS,
 };
-use globed_shared::{ServerUserEntry, MAX_SUPPORTED_PROTOCOL};
+use globed_shared::{should_ignore_error, ServerUserEntry, MAX_SUPPORTED_PROTOCOL};
 
 use super::*;
 use crate::{
@@ -203,7 +203,14 @@ impl UnauthorizedThread {
 
                         Ok(Err(err)) => {
                             // terminate, an error occurred
-                            warn!("fatal error on an unauth thread, terminating: {err}");
+
+                            // ignore certain IO errors
+                            if let PacketHandlingError::IOError(ref e) = err && should_ignore_error(e) {
+                                #[cfg(debug_assertions)]
+                                debug!("fatal error on an unauth thread, terminating: {err}");
+                            } else {
+                                warn!("fatal error on an unauth thread, terminating: {err}");
+                            }
                             self.terminate();
                         }
 

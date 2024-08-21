@@ -57,4 +57,6 @@ class $modify(HookedGameManager, GameManager) {
     cocos2d::CCTexture2D* getCachedIcon(int iconId, int iconType);
 
     void setLastSceneEnum(int n = -1);
+
+    Fields* fields();
 };

@@ -78,17 +78,18 @@ GlobedGJBGL* GlobedGJBGL::get() {
 void GlobedGJBGL::setupPreInit(GJGameLevel* level, bool editor) {
     auto& nm = NetworkManager::get();
     auto& settings = GlobedSettings::get();
+    auto& fields = this->getFields();
 
     auto levelId = HookedGJGameLevel::getLevelIDFrom(level);
-    m_fields->globedReady = nm.established() && levelId > 0;
+    fields.globedReady = nm.established() && levelId > 0;
 
     if (!settings.globed.editorSupport && level->m_levelType == GJLevelType::Editor) {
-        m_fields->globedReady = false;
+        fields.globedReady = false;
     }
 
-    if (m_fields->globedReady) {
+    if (fields.globedReady) {
         // room settings
-        m_fields->roomSettings = RoomManager::get().getInfo().settings;
+        fields.roomSettings = RoomManager::get().getInfo().settings;
 
         /* initialize modules */
 
@@ -99,7 +100,7 @@ void GlobedGJBGL::setupPreInit(GJGameLevel* level, bool editor) {
             this->addModule<DiscordRpcModule>();
         }
 
-        auto& rs = m_fields->roomSettings.flags;
+        auto& rs = fields.roomSettings.flags;
 
         // Collision
         if (rs.collision) {
@@ -107,7 +108,7 @@ void GlobedGJBGL::setupPreInit(GJGameLevel* level, bool editor) {
 
             constexpr bool forcedPlatformer = false; // TODO maybe reenable?
             if (!level->isPlatformer() && forcedPlatformer) {
-                m_fields->forcedPlatformer = true;
+                fields.forcedPlatformer = true;
 #ifdef GEODE_IS_ANDROID
                 if (this->m_uiLayer) {
                     this->m_uiLayer->togglePlatformerMode(true);
@@ -138,9 +139,11 @@ void GlobedGJBGL::setupPreInit(GJGameLevel* level, bool editor) {
 }
 
 void GlobedGJBGL::setupAll() {
+    auto& fields = this->getFields();
+
     this->setupBare();
 
-    if (!m_fields->globedReady) return;
+    if (!fields.globedReady) return;
 
     this->setupDeferredAssetPreloading();
 
@@ -157,12 +160,14 @@ void GlobedGJBGL::setupAll() {
 
 // runs even if not connected to a server or in a non-uploaded editor level
 void GlobedGJBGL::setupBare() {
+    auto& fields = this->getFields();
+
     Build<GlobedOverlay>::create()
         .scale(0.4f)
         .zOrder(11)
         .id("game-overlay"_spr)
         .parent(this)
-        .store(m_fields->overlay);
+        .store(fields.overlay);
 
     auto& nm = NetworkManager::get();
 
@@ -170,12 +175,12 @@ void GlobedGJBGL::setupBare() {
     auto levelId = HookedGJGameLevel::getLevelIDFrom(m_level);
 
     if (!nm.established()) {
-        m_fields->overlay->updateWithDisconnected();
-    } else if (!m_fields->globedReady) {
-        m_fields->overlay->updateWithEditor();
+        fields.overlay->updateWithDisconnected();
+    } else if (!fields.globedReady) {
+        fields.overlay->updateWithEditor();
     } else {
         // else update the overlay with ping
-        m_fields->overlay->updatePing(GameServerManager::get().getActivePing());
+        fields.overlay->updatePing(GameServerManager::get().getActivePing());
     }
 
     GLOBED_EVENT(this, setupBare());
@@ -278,15 +283,17 @@ void GlobedGJBGL::setupPacketListeners() {
     });
 
     nm.addListener<LevelDataPacket>(this, [this](std::shared_ptr<LevelDataPacket> packet){
-        this->m_fields->lastServerUpdate = this->m_fields->timeCounter;
+        auto& fields = this->getFields();
+
+        fields.lastServerUpdate = fields.timeCounter;
 
         for (const auto& player : packet->players) {
-            if (!this->m_fields->players.contains(player.accountId)) {
+            if (!fields.players.contains(player.accountId)) {
                 // new player joined
                 this->handlePlayerJoin(player.accountId);
             }
 
-            this->m_fields->interpolator->updatePlayer(player.accountId, player.data, this->m_fields->lastServerUpdate);
+            fields.interpolator->updatePlayer(player.accountId, player.data, fields.lastServerUpdate);
         }
     });
 
@@ -406,26 +413,27 @@ void GlobedGJBGL::setupUpdate() {
 void GlobedGJBGL::setupMisc() {
     auto& settings = GlobedSettings::get();
     auto& nm = NetworkManager::get();
+    auto& fields = this->getFields();
 
-    m_fields->isVoiceProximity = m_level->isPlatformer() ? settings.communication.voiceProximity : settings.communication.classicProximity;
+    fields.isVoiceProximity = m_level->isPlatformer() ? settings.communication.voiceProximity : settings.communication.classicProximity;
 
     // set the configured tps
     auto tpsCap = settings.globed.tpsCap;
     if (tpsCap != 0) {
-        m_fields->configuredTps = std::min(nm.getServerTps(), (uint32_t)tpsCap);
+        fields.configuredTps = std::min(nm.getServerTps(), (uint32_t)tpsCap);
     } else {
-        m_fields->configuredTps = nm.getServerTps();
+        fields.configuredTps = nm.getServerTps();
     }
 
     // interpolator
-    m_fields->interpolator = std::make_unique<PlayerInterpolator>(InterpolatorSettings {
+    fields.interpolator = std::make_unique<PlayerInterpolator>(InterpolatorSettings {
         .realtime = false,
         .isPlatformer = m_level->isPlatformer(),
-        .expectedDelta = (1.0f / m_fields->configuredTps)
+        .expectedDelta = (1.0f / fields.configuredTps)
     });
 
     // player store
-    m_fields->playerStore = std::make_unique<PlayerStore>();
+    fields.playerStore = std::make_unique<PlayerStore>();
 
     // send SyncIconsPacket if our icons have changed since the last time we sent it
     auto& pcm = ProfileCacheManager::get();
@@ -461,7 +469,7 @@ void GlobedGJBGL::setupMisc() {
 
     // check if any modules disable progress
     bool shouldSafeMode = false;
-    for (auto& module : this->m_fields->modules) {
+    for (auto& module : fields.modules) {
         if (!module->shouldSaveProgress()) {
             shouldSafeMode = true;
             break;
@@ -469,7 +477,7 @@ void GlobedGJBGL::setupMisc() {
     }
 
     if (shouldSafeMode) {
-        m_fields->progressForciblyDisabled = true;
+        fields.progressForciblyDisabled = true;
         this->toggleSafeMode(true);
     }
 }
@@ -477,21 +485,22 @@ void GlobedGJBGL::setupMisc() {
 void GlobedGJBGL::setupUi() {
     auto& settings = GlobedSettings::get();
     auto& pcm = ProfileCacheManager::get();
+    auto& fields = this->getFields();
 
     // progress icon
     Build<CCNode>::create()
         .id("progress-bar-wrapper"_spr)
         .visible(settings.levelUi.progressIndicators)
         .zOrder(-1)
-        .store(m_fields->progressBarWrapper);
+        .store(fields.progressBarWrapper);
 
     Build<PlayerProgressIcon>::create()
-        .parent(m_fields->progressBarWrapper)
+        .parent(fields.progressBarWrapper)
         .id("self-player-progress"_spr)
-        .store(m_fields->selfProgressIcon);
+        .store(fields.selfProgressIcon);
 
-    m_fields->selfProgressIcon->updateIcons(pcm.getOwnData());
-    m_fields->selfProgressIcon->setForceOnTop(true);
+    fields.selfProgressIcon->updateIcons(pcm.getOwnData());
+    fields.selfProgressIcon->setForceOnTop(true);
 
     // status icons
     if (settings.players.statusIcons) {
@@ -501,7 +510,7 @@ void GlobedGJBGL::setupUi() {
             .pos(0.f, 25.f)
             .parent(m_objectLayer)
             .id("self-status-icon"_spr)
-            .store(m_fields->selfStatusIcons);
+            .store(fields.selfStatusIcons);
     }
 
     // own name
@@ -512,18 +521,18 @@ void GlobedGJBGL::setupUi() {
         Build<GlobedNameLabel>::create(ownData.name, ownSpecial)
             .parent(m_objectLayer)
             .id("self-name"_spr)
-            .store(m_fields->ownNameLabel);
+            .store(fields.ownNameLabel);
 
-        m_fields->ownNameLabel->updateOpacity(settings.players.nameOpacity);
+        fields.ownNameLabel->updateOpacity(settings.players.nameOpacity);
 
         if (settings.players.dualName) {
             Build<GlobedNameLabel>::create(ownData.name, ownSpecial)
                 .visible(false)
                 .parent(m_objectLayer)
                 .id("self-name-p2"_spr)
-                .store(m_fields->ownNameLabel2);
+                .store(fields.ownNameLabel2);
 
-            m_fields->ownNameLabel2->updateOpacity(settings.players.nameOpacity);
+            fields.ownNameLabel2->updateOpacity(settings.players.nameOpacity);
         }
     }
 
@@ -546,17 +555,19 @@ void GlobedGJBGL::selSendPlayerData(float) {
     auto self = GlobedGJBGL::get();
 
     if (!self || !self->established()) return;
-    // if (!self->isCurrentPlayLayer()) return;
-    if (!self->accountForSpeedhack(0, 1.0f / self->m_fields->configuredTps, 0.8f)) return;
+    auto& fields = self->getFields();
 
-    self->m_fields->totalSentPackets++;
+    // if (!self->isCurrentPlayLayer()) return;
+    if (!self->accountForSpeedhack(0, 1.0f / fields.configuredTps, 0.8f)) return;
+
+    fields.totalSentPackets++;
     // additionally, if there are no players on the level, we drop down to 1 time per second as an optimization
     // or if we are quitting the level
-    if ((self->m_fields->players.empty() && self->m_fields->totalSentPackets % 30 != 15) || self->m_fields->quitting) return;
+    if ((fields.players.empty() && fields.totalSentPackets % 30 != 15) || fields.quitting) return;
 
     auto data = self->gatherPlayerData();
     std::optional<PlayerMetadata> meta;
-    if (util::misc::swapFlag(m_fields->shouldRequestMeta)) {
+    if (util::misc::swapFlag(fields.shouldRequestMeta)) {
         meta = self->gatherPlayerMetadata();
     }
 
@@ -568,8 +579,10 @@ void GlobedGJBGL::selSendPlayerMetadata(float) {
     auto self = GlobedGJBGL::get();
 
     if (!self || !self->established()) return;
+    auto& fields = self->getFields();
+
     // if there are no players or we are quitting from the level, don't send the packet
-    if (self->m_fields->players.empty() || self->m_fields->quitting) return;
+    if (fields.players.empty() || fields.quitting) return;
 
     m_fields->shouldRequestMeta = true;
 }
@@ -579,18 +592,19 @@ void GlobedGJBGL::selPeriodicalUpdate(float dt) {
     auto self = GlobedGJBGL::get();
 
     if (!self || !self->established()) return;
+    auto& fields = self->getFields();
     // if (!self->isCurrentPlayLayer()) return;
 
     // update the overlay
-    self->m_fields->overlay->updatePing(GameServerManager::get().getActivePing());
+    fields.overlay->updatePing(GameServerManager::get().getActivePing());
 
     auto& pcm = ProfileCacheManager::get();
 
     util::collections::SmallVector<int, 32> toRemove;
 
     // if more than a second passed and there was only 1 player, they probably left
-    if (self->m_fields->timeCounter - self->m_fields->lastServerUpdate > 1.0f && self->m_fields->players.size() < 2) {
-        for (const auto& [playerId, _] : self->m_fields->players) {
+    if (fields.timeCounter - fields.lastServerUpdate > 1.0f && fields.players.size() < 2) {
+        for (const auto& [playerId, _] : fields.players) {
             toRemove.push_back(playerId);
         }
 
@@ -601,9 +615,9 @@ void GlobedGJBGL::selPeriodicalUpdate(float dt) {
         util::collections::SmallVector<int, 256> ids;
 
         // kick players that have left the level
-        for (const auto& [playerId, remotePlayer] : self->m_fields->players) {
+        for (const auto& [playerId, remotePlayer] : fields.players) {
             // if the player doesnt exist in last LevelData packet, they have left the level
-            if (self->m_fields->interpolator->isPlayerStale(playerId, self->m_fields->lastServerUpdate)) {
+            if (fields.interpolator->isPlayerStale(playerId, fields.lastServerUpdate)) {
                 toRemove.push_back(playerId);
                 continue;
             }
@@ -664,33 +678,35 @@ void GlobedGJBGL::selUpdate(float timescaledDt) {
 
     if (!self) return;
 
-    self->m_fields->camState.visibleOrigin = CCPoint{0.f, 0.f};
-    self->m_fields->camState.visibleCoverage = CCDirector::get()->getWinSize();
+    auto& fields = self->getFields();
 
-    self->m_fields->camState.cameraOrigin = self->m_gameState.m_cameraPosition;
-    self->m_fields->camState.zoom = self->m_objectLayer->getScale();
+    fields.camState.visibleOrigin = CCPoint{0.f, 0.f};
+    fields.camState.visibleCoverage = CCDirector::get()->getWinSize();
+
+    fields.camState.cameraOrigin = self->m_gameState.m_cameraPosition;
+    fields.camState.zoom = self->m_objectLayer->getScale();
 
     // update ourselves
     auto accountId = GJAccountManager::get()->m_accountID;
-    self->m_fields->playerStore->insertOrUpdate(
+    fields.playerStore->insertOrUpdate(
         accountId,
         self->m_level->m_attempts,
         static_cast<uint32_t>(self->m_level->isPlatformer() ? self->m_level->m_bestTime : self->m_level->m_normalPercent)
     );
 
-    self->m_fields->timeCounter += dt;
+    fields.timeCounter += dt;
 
-    self->m_fields->interpolator->tick(dt);
+    fields.interpolator->tick(dt);
 
     if (auto pl = PlayLayer::get()) {
-        if (self->m_fields->progressBarWrapper->getParent() != nullptr) {
-            self->m_fields->selfProgressIcon->updatePosition(pl->getCurrentPercent() / 100.f, self->m_isPracticeMode);
+        if (fields.progressBarWrapper->getParent() != nullptr) {
+            fields.selfProgressIcon->updatePosition(pl->getCurrentPercent() / 100.f, self->m_isPracticeMode);
         } else if (pl->m_progressBar) {
             // for some reason, the progressbar is sometimes initialized later than PlayLayer::init
             // it always should exist, even in levels with no actual progress bar (i.e. platformer levels)
             // but it can randomly get initialized late.
             // why robtop????????
-            pl->m_progressBar->addChild(self->m_fields->progressBarWrapper);
+            pl->m_progressBar->addChild(fields.progressBarWrapper);
         }
     }
 
@@ -700,10 +716,10 @@ void GlobedGJBGL::selUpdate(float timescaledDt) {
 
     bool hasBeenKilled = false;
 
-    for (const auto [playerId, remotePlayer] : self->m_fields->players) {
-        const auto& vstate = self->m_fields->interpolator->getPlayerState(playerId);
+    for (const auto [playerId, remotePlayer] : fields.players) {
+        const auto& vstate = fields.interpolator->getPlayerState(playerId);
 
-        auto frameFlags = self->m_fields->interpolator->swapFrameFlags(playerId);
+        auto frameFlags = fields.interpolator->swapFrameFlags(playerId);
 
         bool isSpeaking = vpm.isSpeaking(playerId);
         remotePlayer->updateData(
@@ -727,37 +743,38 @@ void GlobedGJBGL::selUpdate(float timescaledDt) {
         GLOBED_EVENT(self, onUpdatePlayer(playerId, remotePlayer, frameFlags));
     }
 
-    if (self->m_fields->selfStatusIcons) {
-        self->m_fields->selfStatusIcons->setPosition(self->m_player1->getPosition() + CCPoint{0.f, 25.f});
+    if (fields.selfStatusIcons) {
+        float pos = (fields.ownNameLabel && fields.ownNameLabel->isVisible()) ? 40.f : 25.f;
+        fields.selfStatusIcons->setPosition(self->m_player1->getPosition() + CCPoint{0.f, pos});
         bool recording = VoiceRecordingManager::get().isRecording();
 
-        self->m_fields->selfStatusIcons->updateStatus(false, false, recording, false, 0.f);
+        fields.selfStatusIcons->updateStatus(false, false, recording, false, 0.f);
     }
 
-    if (self->m_fields->voiceOverlay) {
-        self->m_fields->voiceOverlay->updateOverlaySoft();
+    if (fields.voiceOverlay) {
+        fields.voiceOverlay->updateOverlaySoft();
     }
 
     // update self names
-    if (self->m_fields->ownNameLabel) {
+    if (fields.ownNameLabel) {
         auto dirVec = GlobedGJBGL::getCameraDirectionVector();
         auto dir = GlobedGJBGL::getCameraDirectionAngle();
 
         if (self->m_player1->m_isHidden) {
-            self->m_fields->ownNameLabel->setVisible(false);
+            fields.ownNameLabel->setVisible(false);
         } else {
-            self->m_fields->ownNameLabel->setVisible(true);
-            self->m_fields->ownNameLabel->setPosition(self->m_player1->getPosition() + dirVec * CCPoint{25.f, 25.f});
-            self->m_fields->ownNameLabel->setRotation(dir);
+            fields.ownNameLabel->setVisible(true);
+            fields.ownNameLabel->setPosition(self->m_player1->getPosition() + dirVec * CCPoint{25.f, 25.f});
+            fields.ownNameLabel->setRotation(dir);
         }
 
-        if (self->m_fields->ownNameLabel2) {
+        if (fields.ownNameLabel2) {
             if (self->m_player2->m_isHidden || !self->m_gameState.m_isDualMode) {
-                self->m_fields->ownNameLabel2->setVisible(false);
+                fields.ownNameLabel2->setVisible(false);
             } else {
-                self->m_fields->ownNameLabel2->setVisible(true);
-                self->m_fields->ownNameLabel2->setPosition(self->m_player2->getPosition() + dirVec * CCPoint{25.f, 25.f});
-                self->m_fields->ownNameLabel->setRotation(dir);
+                fields.ownNameLabel2->setVisible(true);
+                fields.ownNameLabel2->setPosition(self->m_player2->getPosition() + dirVec * CCPoint{25.f, 25.f});
+                fields.ownNameLabel->setRotation(dir);
             }
         }
     }
@@ -772,8 +789,8 @@ void GlobedGJBGL::selUpdateEstimators(float dt) {
     // update volume estimators
     VoicePlaybackManager::get().updateAllEstimators(dt);
 
-    if (self->m_fields->voiceOverlay) {
-        self->m_fields->voiceOverlay->updateOverlay();
+    if (auto overlay = self->m_fields->voiceOverlay) {
+        overlay->updateOverlay();
     }
 
     GLOBED_EVENT(this, selUpdateEstimators(dt));
@@ -861,6 +878,8 @@ PlayerData GlobedGJBGL::gatherPlayerData() {
         isEditorBuilding = this->m_playbackMode == PlaybackMode::Not;
     }
 
+    log::debug("sending last ts: {}, real: {}", m_fields->lastDeathTimestamp, m_fields->isLastDeathReal);
+
     return PlayerData {
         .timestamp = m_fields->timeCounter,
 
@@ -944,6 +963,13 @@ void GlobedGJBGL::updateProximityVolume(int playerId) {
     if (this->shouldLetMessageThrough(playerId)) {
         vpm.setVolume(playerId, volume * settings.communication.voiceVolume);
     }
+}
+
+void GlobedGJBGL::notifyDeath() {
+    auto& fields = this->getFields();
+
+    fields.lastDeathTimestamp = fields.timeCounter;
+    fields.isLastDeathReal = !fields.isFakingDeath;
 }
 
 void GlobedGJBGL::handlePlayerJoin(int playerId) {
@@ -1102,20 +1128,22 @@ void GlobedGJBGL::pausedUpdate(float dt) {
 
 bool GlobedGJBGL::accountForSpeedhack(int uniqueKey, float cap, float allowance) {
     auto* sched = CCScheduler::get();
+    auto& fields = this->getFields();
     auto ts = sched->getTimeScale();
-    if (!util::math::equal(ts, m_fields->lastKnownTimeScale)) {
+
+    if (!util::math::equal(ts, fields.lastKnownTimeScale)) {
         this->unscheduleSelectors();
         this->rescheduleSelectors();
     }
 
     auto now = util::time::now();
 
-    if (!m_fields->lastSentPacket.contains(uniqueKey)) {
-        m_fields->lastSentPacket.emplace(uniqueKey, now);
+    if (!fields.lastSentPacket.contains(uniqueKey)) {
+        fields.lastSentPacket.emplace(uniqueKey, now);
         return true;
     }
 
-    auto lastSent = m_fields->lastSentPacket.at(uniqueKey);
+    auto lastSent = fields.lastSentPacket.at(uniqueKey);
 
     auto passed = util::time::asMillis(now - lastSent);
 
@@ -1124,7 +1152,7 @@ bool GlobedGJBGL::accountForSpeedhack(int uniqueKey, float cap, float allowance)
         return false;
     }
 
-    m_fields->lastSentPacket[uniqueKey] = now;
+    fields.lastSentPacket[uniqueKey] = now;
 
     return true;
 }
@@ -1164,6 +1192,10 @@ void GlobedGJBGL::rescheduleSelectors() {
 
 void GlobedGJBGL::customSchedule(cocos2d::SEL_SCHEDULE selector, float interval) {
     this->getParent()->schedule(selector, interval);
+}
+
+GlobedGJBGL::Fields& GlobedGJBGL::getFields() {
+    return *m_fields.self();
 }
 
 // hooks
@@ -1216,6 +1248,7 @@ class $modify(PlayerObject) {
         auto* gjbgl = GlobedGJBGL::get();
         if (gjbgl && (this == gjbgl->m_player1 || this == gjbgl->m_player2)) {
             GLOBED_EVENT(gjbgl, playerDestroyed(this, p0));
+            gjbgl->notifyDeath();
         }
     }
 };

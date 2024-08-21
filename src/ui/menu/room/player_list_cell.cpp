@@ -5,6 +5,7 @@
 #include <hooks/gjgamelevel.hpp>
 #include <managers/admin.hpp>
 #include <managers/friend_list.hpp>
+#include <managers/role.hpp>
 #include <net/manager.hpp>
 #include <ui/menu/room/download_level_popup.hpp>
 #include <ui/general/simple_player.hpp>
@@ -72,12 +73,10 @@ bool PlayerListCell::init(const PlayerRoomPreviewAccountData& data, float cellWi
 
     nameBtn->setLayoutOptions(AxisLayoutOptions::create()->setPrevGap(10.f));
 
-    // badge
-    auto badge = util::ui::createBadgeIfSpecial(playerData.specialUserData);
-    if (badge) {
-        util::ui::rescaleToMatch(badge, util::ui::BADGE_SIZE);
-        badge->setZOrder(btnorder::Badge);
-        leftSideLayout->addChild(badge);
+    // badge with s
+    if (playerData.specialUserData.roles) {
+        std::vector<std::string> badgeVector = RoleManager::get().getBadgeList(playerData.specialUserData.roles.value());
+        util::ui::addBadgesToMenu(badgeVector, leftSideLayout, btnorder::Badge);
     }
 
     // friend gradient and own gradient
@@ -115,7 +114,7 @@ bool PlayerListCell::init(const PlayerRoomPreviewAccountData& data, float cellWi
 
     leftSideLayout->updateLayout();
 
-    nameBtn->setPositionY(CELL_HEIGHT / 2 - 5.15f);
+    nameBtn->setPositionY(CELL_HEIGHT / 2 - 5.00f);
 
     Build<CCMenu>::create()
         .anchorPoint(1.f, 0.5f)
@@ -156,6 +155,8 @@ void PlayerListCell::createPlayerIcon() {
             .id("player-icon"_spr)
             .parent(leftSideLayout)
             .store(simplePlayer);
+
+        leftSideLayout->updateLayout();
     }
 }
 

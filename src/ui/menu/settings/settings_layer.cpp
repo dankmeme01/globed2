@@ -229,6 +229,9 @@ void GlobedSettingsLayer::createSettingsCells(int category) {
 #ifndef GEODE_IS_ANDROID
             registerSetting(cat, settings.globed.useDiscordRPC, "Discord RPC", "If you have the Discord Rich Presence standalone mod, this option will toggle a Globed-specific RPC on your profile.", Type::DiscordRPC);
 #endif
+
+            registerSetting(cat, settings.globed.changelogPopups, "Changelog Popup", "After every update, show a <cy>popup</c> detailing all the <cl>changes</c> in the <cg>update</c>.");
+
 #ifdef GLOBED_DEBUG
             // advanced settings button
             registerSetting(cat, settings.globed.autoconnect, "Advanced", "Advanced settings", Type::AdvancedSettings);
@@ -258,6 +261,7 @@ void GlobedSettingsLayer::createSettingsCells(int category) {
             registerSetting(cat, settings.levelUi.progressIndicators, "Progress icons", "Show small icons under the progressbar (or at the edge of the screen in platformer), indicating how far other players are in the level.");
             registerSetting(cat, settings.levelUi.progressOpacity, "Indicator opacity", "Changes the opacity of the icons that represent other players.");
             registerSetting(cat, settings.levelUi.voiceOverlay, "Voice overlay", "Show a small overlay in the bottom right indicating currently speaking players.");
+            registerSetting(cat, settings.levelUi.forceProgressBar, "Force Progress Bar", "Enables the progress bar when connected to Globed. Useful if you typically leave it off.");
 
             this->addHeader(category, "Ping overlay");
             registerSetting(cat, settings.overlay.enabled, "Enabled", "Show a small overlay when in a level, displaying the current latency to the server.");

@@ -10,7 +10,7 @@ use globed_shared::{
     crypto_box::{aead::OsRng, PublicKey, SecretKey},
     esp::ByteBufferExtWrite as _,
     logger::*,
-    ServerUserEntry, SyncMutex,
+    should_ignore_error, ServerUserEntry, SyncMutex,
 };
 use rustc_hash::FxHashMap;
 use tokio::{
@@ -274,6 +274,14 @@ impl GameServer {
             }
 
             Err(e) => {
+                // if it is unexpected eof or connection reset by peer, ignore it
+                if let PacketHandlingError::IOError(ref e) = e
+                    && should_ignore_error(e)
+                {
+                    warn!("client loop error: {e}");
+                    return;
+                }
+
                 warn!("client loop error: {e}");
                 return;
             }

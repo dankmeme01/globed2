@@ -13,6 +13,10 @@ namespace util::rng {
         engine.seed(rdev());
     }
 
+    std::mt19937_64& Random::getEngine() {
+        return engine;
+    }
+
     template <typename T>
     T Random::generate() {
         return generate(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());

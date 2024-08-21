@@ -3,6 +3,7 @@
 #include "kofi_popup.hpp"
 #include <ui/menu/featured/daily_popup.hpp>
 #include <data/types/misc.hpp>
+#include <globed/changelog.hpp>
 #include <managers/account.hpp>
 #include <managers/admin.hpp>
 #include <managers/central_server.hpp>
@@ -287,6 +288,33 @@ bool GlobedMenuLayer::init() {
     this->scheduleUpdate();
 
     return true;
+}
+
+void GlobedMenuLayer::onEnterTransitionDidFinish() {
+    if (globed::shouldShowChangelogPopup()) {
+        Loader::get()->queueInMainThread([this] {
+            auto s = this->getParent();
+            if (!s) s = this;
+
+            auto alert = globed::showChangelogPopup();
+            if (alert) {
+                alert->m_scene = s;
+                alert->show();
+            }
+
+            // oh my god i hate it here
+            Loader::get()->queueInMainThread([alert] {
+                auto* td = CCTouchDispatcher::get();
+                auto handler = td->findHandler(alert);
+                if (handler) {
+                    td->setPriority(-505, handler->getDelegate());
+                }
+
+                cocos::handleTouchPriority(alert);
+            });
+        });
+
+    }
 }
 
 GlobedMenuLayer::~GlobedMenuLayer() {

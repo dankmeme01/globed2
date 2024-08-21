@@ -16,6 +16,7 @@ public:
     ~GlobedFeaturedListLayer();
 
 private:
+    cocos2d::CCLabelBMFont* levelsCount;
     GJListLayer* listLayer = nullptr;
     LoadingCircle* loadingCircle = nullptr;
     CCMenuItemSpriteExtra *btnPagePrev = nullptr, *btnPageNext = nullptr;

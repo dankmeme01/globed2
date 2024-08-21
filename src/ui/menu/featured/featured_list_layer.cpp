@@ -51,6 +51,16 @@ bool GlobedFeaturedListLayer::init() {
         .zOrder(2)
         .parent(this);
 
+    // levels label
+    Build<CCLabelBMFont>::create("", "goldFont.fnt")
+        .id("level-count-label")
+        .pos(winSize.width - 7, winSize.height - 2)
+        .scale(0.45f)
+        .zOrder(2)
+        .anchorPoint({1, 1})
+        .parent(this)
+        .store(levelsCount);
+
     constexpr float pageBtnPadding = 20.f;
 
     // pages buttons
@@ -131,6 +141,13 @@ void GlobedFeaturedListLayer::reloadPage() {
     } else {
         this->createLevelList(levelPages[currentPage]);
     }
+
+    int highest = DailyManager::get().getLastSeenFeaturedLevel();
+    int pageMin = currentPage * 10 + 1;
+    int pageMax = (currentPage + 1) * 10;
+    if (pageMax > highest) pageMax = pageMin + (highest % 10) - 1;
+
+    levelsCount->setString(fmt::format("{} to {} of {}", pageMin, pageMax, highest).c_str());
 }
 
 void GlobedFeaturedListLayer::loadListCommon() {

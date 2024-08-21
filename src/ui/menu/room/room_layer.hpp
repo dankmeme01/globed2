@@ -46,7 +46,6 @@ protected:
 
     void requestPlayerList();
     void recreatePlayerList();
-    void sortPlayerList();
     void setFilter(std::string_view filter);
     void setRoomTitle(std::string_view name, uint32_t id);
     void resetFilter();
@@ -65,6 +64,8 @@ protected:
     // callbacks
     void onInvisibleClicked(cocos2d::CCObject*);
     void onCopyRoomId(cocos2d::CCObject*);
+
+    bool shouldRemoveRoomLevel();
 
     ~RoomLayer();
 };

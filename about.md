@@ -22,8 +22,9 @@ Globed is made by:
 
 * [dank_meme](user:9735891) - owner and main developer
 * [availax](user:1621348) - co-owner, community manager, artist, <3
+* [ItzKiba](user:4569963) - artist, developer
+* [TechStudent10](user:20284359) - developer
 * [ninXout](user:7479054) - developer
-* [ItzKiba](user:4569963) - developer
 
 and the rest of our awesome [contributors](https://github.com/dankmeme01/globed2/graphs/contributors)!
 

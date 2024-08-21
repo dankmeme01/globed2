@@ -204,14 +204,11 @@ bool RoomLayer::init() {
     Build<CCSprite>::createSpriteName("icon-close-room.png"_spr)
         .scale(0.7f)
         .intoMenuItem([this](auto) {
-            auto& am = AdminManager::get();
-            if (am.getRole().canModerate()) {
-                geode::createQuickPopup("Close Room?", "Are you sure you want to close this room?", "Cancel", "Ok", [this](auto, bool btn2) {
-                    if (btn2) {
-                        this->closeRoom();
-                    }
-                });
-            }
+            geode::createQuickPopup("Close Room?", "Are you sure you want to close this room?", "Cancel", "Ok", [this](auto, bool btn2) {
+                if (btn2) {
+                    this->closeRoom();
+                }
+            });
         })
         .scaleMult(1.1f)
         .id("btn-close-room")
@@ -249,9 +246,10 @@ bool RoomLayer::init() {
 
 void RoomLayer::update(float dt) {
     auto& rm = RoomManager::get();
+    auto& am = AdminManager::get();
 
     btnSettings->setVisible(rm.isInRoom());
-    btnCloseRoom->setVisible(rm.isInRoom() && (AdminManager::get().authorized() || rm.isOwner()));
+    btnCloseRoom->setVisible(rm.isInRoom() && (rm.isOwner() || am.getRole().canModerate()));
 
     // show/hide the invite button
     bool canInvite = rm.isInRoom() && (rm.isOwner() || rm.getInfo().settings.flags.publicInvites);
@@ -300,8 +298,6 @@ void RoomLayer::update(float dt) {
 
         listLayer->insertCell(roomLevelCell, 0);
         listLayer->forceUpdate();
-
-        log::debug("Added cell");
     }
 }
 
@@ -323,15 +319,18 @@ void RoomLayer::recreatePlayerList() {
 
     listLayer->removeAllCells();
 
+    // room level is first cell always
     if (roomLevelCell) {
         listLayer->addCell(roomLevelCell.data());
     }
 
+    auto selfId = GJAccountManager::get()->m_accountID;
     auto filter = util::format::toLowercase(currentFilter);
 
+    std::vector<PlayerRoomPreviewAccountData> unsortedData;
     for (const auto& data : playerList) {
         // filtering
-        if (data.accountId <= 0) {
+        if (data.accountId <= 0 || data.accountId == selfId) {
             continue;
         }
 
@@ -342,10 +341,58 @@ void RoomLayer::recreatePlayerList() {
             }
         }
 
+        unsortedData.push_back(data);
+        // listLayer->addCellFast(data, listSize.width, false, true);
+    }
+
+    // we always come first (or second if there is a room level)
+    listLayer->addCellFast(ProfileCacheManager::get().getOwnAccountData().makeRoomPreview(0), listSize.width, false, true);
+
+    // inefficient algoritms go!
+
+    // first, just sort the player list
+    auto& flm = FriendListManager::get();
+    std::sort(unsortedData.begin(), unsortedData.end(), [&flm](auto& a, auto& b) {
+        // force friends at the top
+        bool isFriend1 = flm.isFriend(a.accountId);
+        bool isFriend2 = flm.isFriend(b.accountId);
+
+        if (isFriend1 != isFriend2) {
+            return isFriend1;
+        } else {
+            // convert both names to lowercase
+            std::string name1 = a.name, name2 = b.name;
+            std::transform(name1.begin(), name1.end(), name1.begin(), ::tolower);
+            std::transform(name2.begin(), name2.end(), name2.begin(), ::tolower);
+
+            // sort alphabetically
+            return name1 < name2;
+        }
+    });
+
+    // if in a global room, shuffle (except friends)!
+    bool randomize = RoomManager::get().isInGlobal();
+
+    if (randomize) {
+        // find first non-friend element
+        decltype(unsortedData)::iterator firstNonFriend = unsortedData.end();
+
+        for (auto it = unsortedData.begin(); it != unsortedData.end(); it++) {
+            if (!flm.isFriend(it->accountId)) {
+                firstNonFriend = it;
+                break;
+            }
+        }
+
+        // shuffle everything afterwards
+        std::shuffle(firstNonFriend, unsortedData.end(), util::rng::Random::get().getEngine());
+    }
+
+    for (auto& data : unsortedData) { // really its  sorted by now
         listLayer->addCellFast(data, listSize.width, false, true);
     }
 
-    this->sortPlayerList();
+    listLayer->forceUpdate();
 
     // for prettiness, load first 10 icons
     for (size_t i = 0; i < util::math::min(listLayer->cellCount(), 10); i++) {
@@ -354,40 +401,6 @@ void RoomLayer::recreatePlayerList() {
     }
 
     listLayer->scrollToPos(scrollPos);
-}
-
-void RoomLayer::sortPlayerList() {
-    auto& flm = FriendListManager::get();
-
-    auto selfId = GJAccountManager::get()->m_accountID;
-
-    listLayer->sort([&, selfId = selfId](ListCellWrapper* _a, ListCellWrapper* _b) {
-        if (_a->playerCell == nullptr) return true;
-        if (_b->playerCell == nullptr) return false;
-
-        PlayerListCell* a = _a->playerCell;
-        PlayerListCell* b = _b->playerCell;
-
-        // force ourselves at the top
-        if (a->playerData.accountId == selfId) return true;
-        if (b->playerData.accountId == selfId) return false;
-
-        // force friends at the top
-        bool isFriend1 = flm.isFriend(a->playerData.accountId);
-        bool isFriend2 = flm.isFriend(b->playerData.accountId);
-
-        if (isFriend1 != isFriend2) {
-            return isFriend1;
-        } else {
-            // convert both names to lowercase
-            std::string name1 = a->playerData.name, name2 = b->playerData.name;
-            std::transform(name1.begin(), name1.end(), name1.begin(), ::tolower);
-            std::transform(name2.begin(), name2.end(), name2.begin(), ::tolower);
-
-            // sort alphabetically
-            return name1 < name2;
-        }
-    });
 }
 
 void RoomLayer::setFilter(std::string_view filter) {
@@ -480,6 +493,12 @@ void RoomLayer::reloadData(const RoomInfo& info, const std::vector<PlayerRoomPre
 
         this->setRoomTitle(rm.getInfo().name, rm.getId());
         this->addRoomButtons();
+
+        // if we left the room, clear the pinned level
+        if (this->shouldRemoveRoomLevel()) {
+            listLayer->removeCell(roomLevelCell);
+            roomLevelCell = nullptr;
+        }
     }
 
     topRightButtons->updateLayout();
@@ -639,6 +658,16 @@ void RoomLayer::onCopyRoomId(CCObject*) {
     utils::clipboard::write(std::to_string(id));
 
     Notification::create("Copied room ID to clipboard", NotificationIcon::Success)->show();
+}
+
+bool RoomLayer::shouldRemoveRoomLevel() {
+    if (!roomLevelCell) return false;
+
+    auto level = RoomManager::get().getRoomLevel();
+
+    if (!level) return true;
+
+    return roomLevelCell->roomCell->m_level->m_levelID != level->m_levelID;
 }
 
 RoomLayer::~RoomLayer() {

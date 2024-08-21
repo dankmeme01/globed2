@@ -159,3 +159,9 @@ void HookedGameManager::setLastSceneEnum(int n) {
 
     m_fields->lastSceneEnum = n;
 }
+
+HookedGameManager::Fields* HookedGameManager::fields() {
+    // gamemanager is a singleton so this is safe
+    static Fields* fields = m_fields.self();
+    return fields;
+}

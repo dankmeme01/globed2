@@ -152,6 +152,8 @@ class $modify(GlobedGJBGL, GJBaseGameLayer) {
 
     void onQuitActions();
 
+    void notifyDeath();
+
     // runs every frame while paused
     void pausedUpdate(float dt);
 
@@ -174,4 +176,6 @@ class $modify(GlobedGJBGL, GJBaseGameLayer) {
 
     void rescheduleSelectors();
     void customSchedule(cocos2d::SEL_SCHEDULE, float interval = 0.f);
+
+    Fields& getFields();
 };

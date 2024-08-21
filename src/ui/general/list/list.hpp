@@ -7,6 +7,7 @@
 #include "border.hpp"
 #include "content_layer.hpp"
 #include <util/ui.hpp>
+#include <util/rng.hpp>
 #include <util/lowlevel.hpp>
 
 template <typename CellType>
@@ -168,16 +169,16 @@ public:
         }
     }
 
-    void sort(std::function<bool (CellType*, CellType*)>&& pred) {
+private:
+    template <typename F> requires (std::invocable<F, std::vector<Ref<WrapperCell>>&>)
+    void sortInternal(F&& functor) {
         std::vector<Ref<WrapperCell>> sorted;
 
         for (auto* cell : CCArrayExt<WrapperCell*>(this->getCells())) {
             sorted.push_back(Ref(cell));
         }
 
-        std::sort(sorted.begin(), sorted.end(), [&](auto a, auto b) {
-            return pred(a->inner, b->inner);
-        });
+        functor(sorted); // sort
 
         scrollLayer->m_contentLayer->removeAllChildren();
 
@@ -187,6 +188,26 @@ public:
         }
 
         this->updateCells();
+    }
+
+public:
+    void sort(std::function<bool (CellType*, CellType*)>&& pred) {
+        sortInternal([&](auto& sorted) {
+            std::sort(sorted.begin(), sorted.end(), [&](auto a, auto b) {
+                return pred(a->inner, b->inner);
+            });
+        });
+    }
+
+    void shuffle() {
+        sortInternal([&](auto& sorted) {
+            std::shuffle(sorted.begin(), sorted.end(), util::rng::Random::get().getEngine());
+        });
+    }
+
+    template <typename F> requires (std::invocable<F, std::vector<Ref<WrapperCell>>&>)
+    void customSort(F&& functor) {
+        sortInternal(std::forward<F>(functor));
     }
 
     void scrollToTop() {

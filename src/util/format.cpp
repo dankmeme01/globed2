@@ -195,6 +195,28 @@ namespace util::format {
         return out;
     }
 
+    std::vector<std::string_view> splitlines(const std::string_view s) {
+        std::vector<std::string_view> lines;
+        std::size_t start = 0;
+        while (start < s.size()) {
+            std::size_t end = s.find_first_of("\r\n", start);
+
+            if (end == std::string_view::npos) {
+                lines.emplace_back(s.substr(start));
+                break;
+            }
+
+            lines.emplace_back(s.substr(start, end - start));
+            if (s[end] == '\r' && end + 1 < s.size() && s[end + 1] == '\n') {
+                end += 1;
+            }
+
+            start = end + 1;
+        }
+
+        return lines;
+    }
+
     std::tuple<std::string_view, std::string_view, std::string_view> partition(std::string_view s, std::string_view sep) {
         auto sepidx = s.find(sep);
         if (sepidx == std::string::npos) {

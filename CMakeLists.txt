@@ -62,6 +62,7 @@ file(GLOB_RECURSE SOURCES
 	src/audio/*.cpp
 	src/crypto/*.cpp
 	src/data/*.cpp
+    src/globed/*.cpp
 	src/game/*.cpp
 	src/hooks/*.cpp
 	src/managers/*.cpp

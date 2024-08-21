@@ -14,7 +14,7 @@ use crate::tokio::{
     sync::{Mutex, Notify},
 };
 use esp::ByteReader;
-use globed_shared::{logger::*, ServerUserEntry, SyncMutex};
+use globed_shared::{logger::*, should_ignore_error, ServerUserEntry, SyncMutex};
 use handlers::game::MAX_VOICE_PACKET_SIZE;
 use tokio::time::Instant;
 
@@ -283,11 +283,11 @@ impl ClientThread {
                     warn!("[{} @ {}] {}", self.account_id.load(Ordering::Relaxed), self.get_tcp_peer(), error);
                 }
 
-                PacketHandlingError::IOError(ref e) => match e.kind() {
-                    // we ignore early eof and connection reset as they're pretty common and meaningless
-                    ErrorKind::ConnectionReset | ErrorKind::UnexpectedEof => {}
-                    _ => warn!("[{} @ {}] {}", self.account_id.load(Ordering::Relaxed), self.get_tcp_peer(), e),
-                },
+                PacketHandlingError::IOError(ref e) => {
+                    if !should_ignore_error(e) {
+                        warn!("[{} @ {}] {}", self.account_id.load(Ordering::Relaxed), self.get_tcp_peer(), e);
+                    }
+                }
                 // these are either our fault or a fatal error somewhere
                 PacketHandlingError::ColorParseFailed(_)
                 | PacketHandlingError::UnexpectedCentralResponse

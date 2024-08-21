@@ -33,18 +33,18 @@ GLOBED_SERIALIZABLE_STRUCT(GameServerRole, (
 ));
 
 struct ComputedRole {
-    int32_t priority;
+    int32_t priority = false;
     std::string badgeIcon;
     std::optional<RichColor> nameColor;
     std::optional<cocos2d::ccColor3B> chatColor;
 
-    bool notices, noticesToEveryone;
-    bool kick, kickEveryone;
-    bool mute;
-    bool ban;
-    bool editRole;
-    bool editFeaturedLevels;
-    bool admin;
+    bool notices = false, noticesToEveryone = false;
+    bool kick = false, kickEveryone = false;
+    bool mute = false;
+    bool ban = false;
+    bool editRole = false;
+    bool editFeaturedLevels = false;
+    bool admin = false;
 
     bool canModerate() {
         return notices || noticesToEveryone || kick || kickEveryone || mute || ban || editRole || editFeaturedLevels || admin;

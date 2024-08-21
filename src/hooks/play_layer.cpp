@@ -3,6 +3,7 @@
 #include "gjbasegamelayer.hpp"
 #include "level_editor_layer.hpp"
 #include <game/module/all.hpp>
+#include <managers/settings.hpp>
 #include <util/lowlevel.hpp>
 #include <util/cocos.hpp>
 #include <util/gd.hpp>
@@ -30,6 +31,13 @@ bool GlobedPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
     auto gjbgl = static_cast<GlobedGJBGL*>(static_cast<GJBaseGameLayer*>(this));
 
     gjbgl->setupPreInit(level, false);
+
+    auto& settings = GlobedSettings::get();
+    if (settings.levelUi.forceProgressBar && gjbgl->m_fields->globedReady) {
+        auto gm = GameManager::sharedState();
+        m_fields->oldShowProgressBar = gm->m_showProgressBar;
+        gm->m_showProgressBar = true;
+    }
 
     if (!PlayLayer::init(level, p1, p2)) return false;
 
@@ -59,17 +67,24 @@ void GlobedPlayLayer::setupHasCompleted() {
 }
 
 void GlobedPlayLayer::onQuit() {
-    GlobedGJBGL::get()->onQuitActions();
+    auto gjbgl = GlobedGJBGL::get();
+    auto& fields = this->getFields();
+
+    if (fields.oldShowProgressBar) {
+        auto gm = GameManager::sharedState();
+        gm->m_showProgressBar = fields.oldShowProgressBar.value();
+    }
+    gjbgl->onQuitActions();
 
     PlayLayer::onQuit();
 }
 
 void GlobedPlayLayer::fullReset() {
-    PlayLayer::fullReset();
-
     auto gjbgl = GlobedGJBGL::get();
 
     GLOBED_EVENT_O(gjbgl, fullResetLevel());
+
+    PlayLayer::fullReset();
 
     // turn off safe mode
     GlobedGJBGL::get()->toggleSafeMode(false);
@@ -77,11 +92,12 @@ void GlobedPlayLayer::fullReset() {
 
 void GlobedPlayLayer::resetLevel() {
     auto gjbgl = GlobedGJBGL::get();
+    auto& fields = this->getFields();
 
     GLOBED_EVENT_O(gjbgl, resetLevel());
 
-    if (m_fields->insideDestroyPlayer) {
-        m_fields->insideDestroyPlayer = false;
+    if (fields.insideDestroyPlayer) {
+        fields.insideDestroyPlayer = false;
     }
 
     bool lastTestMode = m_isTestMode;
@@ -114,8 +130,10 @@ void GlobedPlayLayer::levelComplete() {
 }
 
 void GlobedPlayLayer::destroyPlayer(PlayerObject* player, GameObject* object) {
-    if (!m_fields->antiCheat) {
-        m_fields->antiCheat = object;
+    auto& fields = this->getFields();
+
+    if (!fields.antiCheat) {
+        fields.antiCheat = object;
     }
 
     auto* pl = GlobedGJBGL::get();
@@ -130,7 +148,7 @@ void GlobedPlayLayer::destroyPlayer(PlayerObject* player, GameObject* object) {
         m_isTestMode = true;
     }
 
-    m_fields->insideDestroyPlayer = true;
+    fields.insideDestroyPlayer = true;
 
 #ifdef GEODE_IS_ARM_MAC
 # if GEODE_COMP_GD_VERSION != 22060
@@ -165,7 +183,13 @@ void GlobedPlayLayer::destroyPlayer(PlayerObject* player, GameObject* object) {
 }
 
 void GlobedPlayLayer::forceKill(PlayerObject* p) {
-    m_fields->ignoreNoclip = true;
+    auto& fields = this->getFields();
+
+    fields.ignoreNoclip = true;
     this->PlayLayer::destroyPlayer(p, nullptr);
-    m_fields->ignoreNoclip = false;
+    fields.ignoreNoclip = false;
+}
+
+GlobedPlayLayer::Fields& GlobedPlayLayer::getFields() {
+    return *m_fields.self();
 }

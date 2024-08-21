@@ -78,3 +78,10 @@ pub fn get_log_level(env_var: &str) -> Option<LogLevelFilter> {
         },
     )
 }
+
+pub fn should_ignore_error(error: &std::io::Error) -> bool {
+    use std::io::ErrorKind;
+
+    // we ignore early eof and connection reset as they're pretty common and meaningless
+    error.kind() == ErrorKind::UnexpectedEof || error.kind() == ErrorKind::ConnectionReset || error.kind() == ErrorKind::BrokenPipe
+}

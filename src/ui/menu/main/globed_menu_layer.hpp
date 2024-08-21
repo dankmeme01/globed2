@@ -26,4 +26,5 @@ private:
     void keyDown(cocos2d::enumKeyCodes key) override;
     void update(float dt) override;
     void navigateToServerLayer();
+    void onEnterTransitionDidFinish() override;
 };
