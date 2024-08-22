@@ -11,6 +11,7 @@ class $modify(HookedLevelInfoLayer, LevelInfoLayer) {
     struct Fields {
         bool allowOpeningAnyway = false;
         int rateTier = -1;
+        Ref<cocos2d::CCLabelBMFont> playerCountLabel;
     };
 
     $override
@@ -27,4 +28,8 @@ class $modify(HookedLevelInfoLayer, LevelInfoLayer) {
     void addLevelSendButton();
 
     void addRoomLevelButton();
+
+    void addPlayerCountLabel();
+    void updatePlayerCount(int);
+    void scheduledPlayerCountUpdate(float);
 };

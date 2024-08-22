@@ -241,6 +241,7 @@ void GlobedSettingsLayer::createSettingsCells(int category) {
         case TAG_TAB_MENUS: {
             registerSetting(cat, settings.globed.increaseLevelList, "More Levels Per Page", "Increases the levels per page in the server level list from 30 to 100.");
             registerSetting(cat, settings.globed.compressedPlayerCount, "Compressed Player Count", "Compress the Player Count label to match the Player Count in The Tower.");
+            registerSetting(cat, settings.globed.playerCountOnLvlPage, "Player count on level page", "Show the Player Count label on user-made levels.");
         } break;
 
         case TAG_TAB_COMMUNICATION: {
