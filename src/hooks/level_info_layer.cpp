@@ -179,6 +179,7 @@ void HookedLevelInfoLayer::addPlayerCountLabel() {
 }
 
 void HookedLevelInfoLayer::updatePlayerCount(int playerCount) {
+    if (!m_fields->playerCountLabel) return;
     if (playerCount == 0) {
         m_fields->playerCountLabel->setVisible(false);
         return;
