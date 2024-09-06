@@ -152,7 +152,6 @@ public:
         Setting<int, 60000> fragmentationLimit;
         Setting<bool, false> compressedPlayerCount;
         Setting<bool, true> useDiscordRPC;
-        Setting<bool, true> changelogPopups;
         Setting<bool, true> playerCountOnLvlPage;
 
         // hidden settings! no settings ui for them
@@ -293,7 +292,7 @@ public:
 
 GLOBED_SERIALIZABLE_STRUCT(GlobedSettings::Globed, (
     autoconnect, tpsCap, preloadAssets, deferPreloadAssets, invitesFrom, editorSupport, increaseLevelList, fragmentationLimit, compressedPlayerCount, useDiscordRPC,
-    changelogPopups, pinnedLevelCollapsed, playerCountOnLvlPage
+    changelogPopups, pinnedLevelCollapsed, playerCountOnLvlPage,
     isInvisible, noInvites, hideInGame, hideRoles
 ));
 
