@@ -1,16 +1,31 @@
+## v1.6.2
+
+* Fix crashes on some Windows devices
+
+## v1.6.1
+
+* Fix crash when pressing any key on Mac
+* Fix crash when opening the globed menu on Mac
+* Fix player list looking weird after leaving a room with a pinned level
+* In Death Link, faster reset will now be enabled for everyone if the room creator has it enabled
+* Add verification for discord linking
+* Only show 1 badge near a player's name when in a level
+
 ## v1.6.0
 
 * Add a way to <cg>pin a specific level</c> in a room
 * \-- If you are a room creator, there will now be a <cp>new button</c> whenever opening an online level
 * \-- The chosen level will be <cg>pinned</c> at the top of the player list in the globed menu
-* \-- Thanks [TechStudent10](https://github.com/TechStudent10/) for implementing this!
+* \-- Thanks [TechStudent10](user:20284359) for implementing this (and [Dasshu](user:1975253) for the textures!)
 * Add a <cg>popup</c> showing the <cy>changelog</c> of the most recent update
-* Add proper user visibility settings (TODO ACTUALLY MAKE UI!)
-* \-- You can now choose to separately hide yourself from the player list, the level, or the invite list.
-* Show all the <cp>badges</c> of a player instead of just one at a time (for example <cg>Mod</c> & <cp>Booster</c>) (thanks Kiba!)
+* Change the invisibility button to instead open a popup with more advanced options
+* \-- You can now choose to separately hide yourself from the player list, the level, or the invite list
+* Add a new Discord bot for supporters to be able to obtain their in-game roles without having to ask a staff member
+* Show all the <cp>badges</c> of a player instead of just one at a time (for example <cg>Mod</c> & <cp>Booster</c>) (thanks [Kiba](user:4569963)
 * When playing in a <cj>Death Link</c> room, the faster reset option is now <cy>forcefully disabled</c> for all players (to prevent <cr>desync</c>)
 * Automatically <cr>block</c> invites from users that you have <cr>blocked</c> on GD
-* Add a Force Progress Bar setting, that makes it so that the progress bar is enabled if there's other players on your level, when it's otherwise disabled (thanks TechStudent10!)
+* Change the player list to sort players in a <cp>random order</c>, to fight against people making alt accounts to promote their levels
+* Add a <cy>Force Progress Bar</c> setting, that makes it so that the progress bar is enabled if you are connected to the server, when it's otherwise disabled (thanks TechStudent10!)
 * Add Node IDs dependency
 * Remove Custom Keybinds dependency from Android, as it was unused
 * Various security improvements
@@ -18,15 +33,17 @@
 Bugfixes:
 
 * Fixed some <cy>login issues</c> (login taking a very long time and sometimes failing for no reason)
-* Fixed player names and status icons not rotating together with the camera (i.e. arrow trigger)
+* Fixed player names and status icons <cr>not rotating</c> together with the camera (i.e. arrow trigger)
 * \-- You can return to the old behavior by disabling the "Rotate names" setting
-* \-- Thanks [TheSillyDoggo](https://github.com/TheSillyDoggo/) for implementing this!
+* \-- Thanks [TheSillyDoggo](user:16778880) for implementing this!
 * Fixed crash caused by closing the globed menu too fast
 * Fixed crash when muting a user that has exited the level
 * Fixed room name <cr>overlapping</c> other UI elements in the room listing
 * Fixed player count going up to 4 digits on android (and cap to 10000 instead of 65535)
+* Fixed crash on entering a level when Force Platformer is enabled in <cg>Megahack</c>
 * Fixed the room listing getting <cr>closed</c> when trying to join a room, even if joining fails
 * Fixed <cg>"Player"</c> with default icons showing up in the player list
+* Fixed ship fire showing near invisible players
 * Change max web request timeout to be <cg>10 seconds</c> in most places instead of <cy>3 or 5 seconds</c>
 
 ## v1.5.1
@@ -113,7 +130,7 @@ Bugfixes:
 * \-- When [EditorCollab by alk1m123](https://github.com/altalk23/EditorCollab) comes out, you will also be able to playtest non-uploaded levels together with others
 * \-- Experimental, might have issues
 * Add automatic reconnection to the server in case of a disconnect
-* Add credits to the globed menu (thanks [TechStudent11](user:20284359) for partial help)
+* Add credits to the globed menu (thanks [TechStudent10](user:20284359) for partial help)
 * Fix all unsynced clock issues (auth no longer uses TOTP)
 * Fix most "unhandled packet" errors by rewriting networking core
 * Fix many connection related bugs
@@ -121,7 +138,7 @@ Bugfixes:
 * Add a Compressed Player Count setting which changes the "X players" label to be more compact (thanks [Uproxide](user:25397826)!)
 * Add support & voice chat guide buttons in the menu (thanks [Kiba](user:4569963) for the design)
 * Add a gradient and an icon to your friends on the player list
-* Add a way to hide yourself from the player list in menus (thanks [TechStudent11](user:20284359))
+* Add a way to hide yourself from the player list in menus (thanks [TechStudent10](user:20284359))
 * Redesign the main menus and change textures for many of the icons
 * Add much better error messages for outdated clients
 * Don't play effects and animations if the player is too far, to decrease lag

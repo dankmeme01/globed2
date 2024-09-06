@@ -45,6 +45,7 @@ pub struct UnauthorizedThread {
     pub level_id: AtomicLevelId,
     pub on_unlisted_level: AtomicBool,
     pub room_id: AtomicU32,
+    pub link_code: AtomicU32,
 
     pub account_data: SyncMutex<PlayerAccountData>,
     pub user_entry: SyncMutex<Option<ServerUserEntry>>,
@@ -86,6 +87,7 @@ impl UnauthorizedThread {
             level_id: AtomicLevelId::new(0),
             on_unlisted_level: AtomicBool::new(false),
             room_id: AtomicU32::new(0),
+            link_code: AtomicU32::new(0),
 
             account_data: SyncMutex::new(PlayerAccountData::default()),
             user_entry: SyncMutex::new(None),
@@ -120,6 +122,7 @@ impl UnauthorizedThread {
             level_id: thread.level_id,
             on_unlisted_level: thread.on_unlisted_level,
             room_id: thread.room_id,
+            link_code: thread.link_code,
 
             account_data: SyncMutex::new(std::mem::take(&mut *thread.account_data.lock())),
             user_entry: SyncMutex::new(Some(std::mem::take(&mut *thread.user_entry.lock()))),
@@ -383,18 +386,24 @@ impl UnauthorizedThread {
 
         // fetch data from the central
         if !standalone {
-            let user_entry = match self.game_server.bridge.get_user_data(&packet.account_id.to_string()).await {
-                Ok(user) if user.is_banned => {
+            let response = match self.game_server.bridge.user_login(packet.account_id, &player_name).await {
+                Ok(response) if response.user_entry.is_banned => {
                     socket
                         .send_packet_dynamic(&ServerBannedPacket {
-                            message: FastString::new(&user.violation_reason.as_ref().map_or_else(|| "No reason given".to_owned(), |x| x.clone())),
-                            timestamp: user.violation_expiry.unwrap_or_default(),
+                            message: FastString::new(
+                                &response
+                                    .user_entry
+                                    .violation_reason
+                                    .as_ref()
+                                    .map_or_else(|| "No reason given".to_owned(), |x| x.clone()),
+                            ),
+                            timestamp: response.user_entry.violation_expiry.unwrap_or_default(),
                         })
                         .await?;
 
                     return Ok(());
                 }
-                Ok(user) if self.game_server.bridge.is_whitelist() && !user.is_whitelisted => {
+                Ok(response) if self.game_server.bridge.is_whitelist() && !response.user_entry.is_whitelisted => {
                     socket
                         .send_packet_dynamic(&LoginFailedPacket {
                             message: "This server has whitelist enabled and your account has not been allowed.",
@@ -403,7 +412,7 @@ impl UnauthorizedThread {
 
                     return Ok(());
                 }
-                Ok(user) => user,
+                Ok(response) => response,
                 Err(err) => {
                     let mut message = InlineString::<256>::new("failed to fetch user data: ");
                     message.extend_safe(&err.to_string());
@@ -413,8 +422,9 @@ impl UnauthorizedThread {
                 }
             };
 
-            *self.user_role.lock() = Some(self.game_server.state.role_manager.compute(&user_entry.user_roles));
-            *self.user_entry.lock() = Some(user_entry);
+            *self.user_role.lock() = Some(self.game_server.state.role_manager.compute(&response.user_entry.user_roles));
+            *self.user_entry.lock() = Some(response.user_entry);
+            self.link_code.store(response.link_code, Ordering::Relaxed);
         }
 
         self.account_id.store(packet.account_id, Ordering::Relaxed);
@@ -445,7 +455,12 @@ impl UnauthorizedThread {
         };
 
         // add them to the global room
-        self.game_server.state.room_manager.get_global().manager.create_player(packet.account_id);
+        self.game_server
+            .state
+            .room_manager
+            .get_global()
+            .manager
+            .create_player(packet.account_id, packet.privacy_settings.get_hide_in_game());
 
         self.send_login_success().await?;
 

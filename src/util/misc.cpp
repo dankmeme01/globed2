@@ -7,6 +7,11 @@
 #include <util/lowlevel.hpp>
 #include <util/crypto.hpp>
 
+#ifdef GLOBED_DEBUG
+# include <util/time.hpp>
+# include <util/format.hpp>
+#endif
+
 namespace util::misc {
     bool swapFlag(bool& target) {
         bool state = target;
@@ -87,6 +92,13 @@ namespace util::misc {
 
     const UniqueIdent& fingerprint() {
         static auto fingerprint = []{
+#ifdef GLOBED_DEBUG
+            auto now = util::time::now();
+            auto _ = util::misc::scopeDestructor([now] {
+                log::debug("Fingerprint computation took {}", util::format::duration(util::time::now() - now));
+            });
+#endif
+
             auto res = fingerprintImpl();
 
             if (!res) {

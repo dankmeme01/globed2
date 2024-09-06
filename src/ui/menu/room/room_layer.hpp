@@ -31,8 +31,7 @@ protected:
     Ref<LoadingCircle> loadingCircle;
     Ref<cocos2d::CCMenu> topRightButtons;
     PlayerList* listLayer;
-    Ref<CCMenuItemSpriteExtra> btnSearch, btnClearSearch, btnSettings, btnInvite, btnRefresh, btnCloseRoom;
-    Ref<CCMenuItemToggler> btnInvisible;
+    Ref<CCMenuItemSpriteExtra> btnSearch, btnClearSearch, btnSettings, btnInvite, btnRefresh, btnCloseRoom, btnPrivacySettings;
     Ref<cocos2d::CCMenu> btnRoomId, roomButtonMenu;
     Ref<ListCellWrapper> roomLevelCell;
 
@@ -62,7 +61,7 @@ protected:
     void reloadData(const RoomInfo& info, const std::vector<PlayerRoomPreviewAccountData>& players);
 
     // callbacks
-    void onInvisibleClicked(cocos2d::CCObject*);
+    void onPrivacySettingsClicked(cocos2d::CCObject*);
     void onCopyRoomId(cocos2d::CCObject*);
 
     bool shouldRemoveRoomLevel();

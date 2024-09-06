@@ -96,10 +96,6 @@ void GlobedPlayLayer::resetLevel() {
 
     GLOBED_EVENT_O(gjbgl, resetLevel());
 
-    if (fields.insideDestroyPlayer) {
-        fields.insideDestroyPlayer = false;
-    }
-
     bool lastTestMode = m_isTestMode;
 
     if (GlobedGJBGL::get()->isSafeMode()) {
@@ -148,8 +144,6 @@ void GlobedPlayLayer::destroyPlayer(PlayerObject* player, GameObject* object) {
         m_isTestMode = true;
     }
 
-    fields.insideDestroyPlayer = true;
-
 #ifdef GEODE_IS_ARM_MAC
 # if GEODE_COMP_GD_VERSION != 22060
 #  error "update this patch for new gd"
@@ -175,7 +169,6 @@ void GlobedPlayLayer::destroyPlayer(PlayerObject* player, GameObject* object) {
 #else
     PlayLayer::destroyPlayer(player, object);
 #endif
-
 
     GLOBED_EVENT(pl, destroyPlayerPost(player, object));
 

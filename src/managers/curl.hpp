@@ -12,7 +12,7 @@
 
 struct CurlRequest;
 
-struct CurlResponse {
+struct GLOBED_DLL CurlResponse {
     CurlResponse() {}
     CurlResponse(CurlResponse&&) = default;
     CurlResponse& operator=(CurlResponse&&) = default;
@@ -59,7 +59,7 @@ private:
     friend class CurlManager;
 };
 
-class CurlManager : public SingletonBase<CurlManager> {
+class GLOBED_DLL CurlManager : public SingletonBase<CurlManager> {
     friend class SingletonBase;
 
 public:

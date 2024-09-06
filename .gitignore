@@ -53,6 +53,7 @@
 .cache/
 
 build.sh
+build-win
 build-fast.sh
 build-android.sh
 build-android/

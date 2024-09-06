@@ -22,14 +22,4 @@ void HookedCCLayer::onEnter() {
     }
 }
 
-void HookedCCLayer::onExit() {
-    bool isPauseLayer = this->getID() == "PauseLayer" || typeinfo_cast<PauseLayer*>(this) != nullptr;
-
-    if (isPauseLayer) {
-        static_cast<PauseLayerBugfix*>(static_cast<CCLayer*>(this))->onExitHook();
-    } else {
-        CCLayer::onExit();
-    }
-}
-
 #endif // GEODE_IS_WINDOWS

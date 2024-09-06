@@ -1,11 +1,12 @@
 #include "room_join_popup.hpp"
 
-#include <net/manager.hpp>
+#include "room_password_popup.hpp"
 #include <data/packets/client/room.hpp>
+#include <data/packets/server/room.hpp>
+#include <managers/error_queues.hpp>
+#include <net/manager.hpp>
 #include <util/format.hpp>
 #include <util/misc.hpp>
-#include "room_password_popup.hpp"
-#include <managers/error_queues.hpp>
 
 using namespace geode::prelude;
 

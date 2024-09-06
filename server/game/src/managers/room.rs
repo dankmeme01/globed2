@@ -259,7 +259,10 @@ impl RoomManager {
 
         let mut pm = LevelManager::new();
         if owner != 0 {
-            pm.create_player(owner);
+            let owner_thread = self.get_game_server().get_user_by_id(owner);
+            let is_invisible = owner_thread.map(|thr| thr.privacy_settings.lock().get_hide_in_game()).unwrap_or(false);
+
+            pm.create_player(owner, is_invisible);
         }
 
         let owner_data = self.get_game_server().get_player_preview_data(owner);

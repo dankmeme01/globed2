@@ -6,6 +6,7 @@
 #include "frag_calibration_popup.hpp"
 #include "string_input_popup.hpp"
 #include "advanced_settings_popup.hpp"
+#include "link_code_popup.hpp"
 #include <managers/settings.hpp>
 #include <net/manager.hpp>
 #include <ui/general/ask_input_popup.hpp>
@@ -121,6 +122,7 @@ bool GlobedSettingCell::init(void* settingStorage, Type settingType, const char*
         case Type::String: [[fallthrough]];
         case Type::PacketFragmentation: [[fallthrough]];
         case Type::AdvancedSettings: [[fallthrough]];
+        case Type::LinkCode: [[fallthrough]];
         case Type::AudioDevice: {
             const char* text;
             if (settingType == Type::PacketFragmentation) {
@@ -129,6 +131,8 @@ bool GlobedSettingCell::init(void* settingStorage, Type settingType, const char*
                 text = "View";
             } else if (settingType == Type::AudioDevice) {
                 text = "Set";
+            } else if (settingType == Type::LinkCode) {
+                text = "View";
             } else {
                 text = "String??";
             }
@@ -260,6 +264,12 @@ void GlobedSettingCell::onInteractiveButton(cocos2d::CCObject*) {
         }
     } else if (settingType == Type::AdvancedSettings) {
         AdvancedSettingsPopup::create()->show();
+    } else if (settingType == Type::LinkCode) {
+        if (NetworkManager::get().established()) {
+            LinkCodePopup::create()->show();
+        } else {
+            FLAlertLayer::create("Error", "This action can only be done when connected to a server.", "Ok")->show();
+        }
     } else {
         StringInputPopup::create([this](const std::string_view text) {
             this->onStringChanged(text);
@@ -366,6 +376,7 @@ void GlobedSettingCell::storeAndSave(std::any&& value) {
         case Type::Corner: [[fallthrough]];
         case Type::PacketFragmentation: [[fallthrough]];
         case Type::InvitesFrom: [[fallthrough]];
+        case Type::LinkCode: [[fallthrough]];
         case Type::Int:
             *(int*)(settingStorage) = std::any_cast<int>(value); break;
         case Type::AdvancedSettings:

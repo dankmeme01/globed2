@@ -39,7 +39,7 @@ constexpr size_t VOICE_CHANNELS = 1;
 constexpr int MAX_AUDIO_CHANNELS = 512;
 
 // This class might thread safe ?
-class GlobedAudioManager : public SingletonBase<GlobedAudioManager> {
+class GLOBED_DLL GlobedAudioManager : public SingletonBase<GlobedAudioManager> {
 protected:
     friend class SingletonBase;
     GlobedAudioManager();

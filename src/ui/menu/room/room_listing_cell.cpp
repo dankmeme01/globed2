@@ -2,9 +2,10 @@
 
 #include "room_password_popup.hpp"
 #include "room_listing_popup.hpp"
-#include <ui/general/simple_player.hpp>
-#include <net/manager.hpp>
+#include <data/packets/client/room.hpp>
 #include <managers/role.hpp>
+#include <net/manager.hpp>
+#include <ui/general/simple_player.hpp>
 #include <util/ui.hpp>
 #include <util/gd.hpp>
 

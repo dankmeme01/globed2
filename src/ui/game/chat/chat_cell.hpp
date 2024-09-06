@@ -1,5 +1,5 @@
 #pragma once
-#include <defs/all.hpp>
+#include <defs/geode.hpp>
 
 #include <data/types/gd.hpp>
 #include <game/player_store.hpp>

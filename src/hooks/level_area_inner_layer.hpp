@@ -5,7 +5,7 @@
 
 #include <data/types/gd.hpp>
 
-class $modify(HookedLevelAreaInnerLayer, LevelAreaInnerLayer) {
+struct GLOBED_DLL HookedLevelAreaInnerLayer : geode::Modify<HookedLevelAreaInnerLayer, LevelAreaInnerLayer> {
     static inline const auto TOWER_LEVELS = std::to_array<LevelId>({5001, 5002, 5003, 5004});
 
     struct Fields {

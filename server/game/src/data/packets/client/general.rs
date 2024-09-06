@@ -25,3 +25,7 @@ pub struct RequestPlayerCountPacket {
 pub struct UpdatePlayerStatusPacket {
     pub flags: UserPrivacyFlags,
 }
+
+#[derive(Packet, Decodable)]
+#[packet(id = 11005)]
+pub struct LinkCodeRequestPacket;

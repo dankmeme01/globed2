@@ -10,6 +10,7 @@ pub struct LevelManagerPlayer {
     pub account_id: i32,
     pub data: PlayerData,
     pub meta: PlayerMetadata,
+    pub is_invisible: bool,
 }
 
 impl LevelManagerPlayer {
@@ -64,11 +65,16 @@ impl LevelManager {
         self.players.get(&account_id)
     }
 
-    pub fn create_player(&mut self, account_id: i32) {
+    pub fn get_player_data_mut(&mut self, account_id: i32) -> Option<&mut LevelManagerPlayer> {
+        self.players.get_mut(&account_id)
+    }
+
+    pub fn create_player(&mut self, account_id: i32, invisible: bool) {
         self.players.insert(
             account_id,
             LevelManagerPlayer {
                 account_id,
+                is_invisible: invisible,
                 ..Default::default()
             },
         );
@@ -122,6 +128,7 @@ impl LevelManager {
     }
 
     /// run a function `f` on each player on a level given its ID, with possibility to pass additional data
+    #[inline]
     pub fn for_each_player_on_level<F: FnMut(&LevelManagerPlayer)>(&self, level_id: LevelId, f: F) {
         if let Some(level) = self.levels.get(&level_id) {
             level.players.iter().filter_map(|&key| self.players.get(&key)).for_each(f);

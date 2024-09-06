@@ -54,26 +54,30 @@ impl ClientThread {
             return Err(PacketHandlingError::UnexpectedPlayerData);
         }
 
+        let is_mod = self.can_moderate();
+
         let room_id = self.room_id.load(Ordering::Relaxed);
 
         let (written_players, metadatas) = self.game_server.state.room_manager.with_any(room_id, |pm| {
             pm.manager.set_player_data(account_id, &packet.data);
 
+            // this unwrap should be safe and > 0 given that self.level_id != 0, but we leave a default just in case
+            let player_count = pm.manager.get_player_count_on_level(level_id).unwrap_or(1) - 1;
+
             let mut metavec = Vec::new();
             if let Some(meta) = packet.meta {
                 pm.manager.set_player_meta(account_id, &meta);
 
-                metavec = Vec::with_capacity(pm.manager.get_player_count_on_level(level_id).unwrap_or(0));
+                metavec = Vec::with_capacity(player_count);
                 pm.manager.for_each_player_on_level(level_id, |player| {
-                    metavec.push(AssociatedPlayerMetadata {
-                        account_id: player.account_id,
-                        data: player.meta.clone(),
-                    });
+                    if player.account_id != account_id && (!player.is_invisible || is_mod) {
+                        metavec.push(AssociatedPlayerMetadata {
+                            account_id: player.account_id,
+                            data: player.meta.clone(),
+                        });
+                    }
                 });
             }
-
-            // this unwrap should be safe and > 0 given that self.level_id != 0, but we leave a default just in case
-            let player_count = pm.manager.get_player_count_on_level(level_id).unwrap_or(1) - 1;
 
             (player_count, metavec)
         });
@@ -93,7 +97,7 @@ impl ClientThread {
                     buf.write_list_with(written_players, |buf| {
                         let mut count = 0usize;
                         pm.manager.for_each_player_on_level(level_id, |player| {
-                            if count < written_players && player.account_id != account_id {
+                            if count < written_players && player.account_id != account_id && (!player.is_invisible || is_mod) {
                                 buf.write_value(&player.to_borrowed_associated_data());
                                 count += 1;
                             }
@@ -112,7 +116,7 @@ impl ClientThread {
 
             self.game_server.state.room_manager.with_any(room_id, |pm| {
                 pm.manager.for_each_player_on_level(level_id, |player| {
-                    if player.account_id != account_id {
+                    if player.account_id != account_id && (!player.is_invisible || is_mod) {
                         players.push(player.to_associated_data());
                     }
                 });
@@ -149,10 +153,12 @@ impl ClientThread {
 
         let room_id = self.room_id.load(Ordering::Relaxed);
 
+        let is_mod = self.can_moderate();
+
         // if they requested just one player - use the fast heapless path
         if packet.requested != 0 {
             let calc_size = size_of_types!(VarLength) + size_of_types!(PlayerAccountData);
-            let account_data = self.game_server.get_player_account_data(packet.requested);
+            let account_data = self.game_server.get_player_account_data(packet.requested, is_mod);
 
             if let Some(account_data) = account_data {
                 return self
@@ -176,7 +182,7 @@ impl ClientThread {
             } else {
                 let mut vec = Vec::with_capacity(total_players);
                 pm.manager.for_each_player_on_level(level_id, |player| {
-                    let account_data = self.game_server.get_player_account_data(player.account_id);
+                    let account_data = self.game_server.get_player_account_data(player.account_id, is_mod);
                     if let Some(d) = account_data {
                         vec.push(d);
                     }

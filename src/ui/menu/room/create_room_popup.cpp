@@ -8,6 +8,7 @@
 #include <util/format.hpp>
 #include <util/math.hpp>
 #include <util/ui.hpp>
+#include <util/gd.hpp>
 
 using namespace geode::prelude;
 
@@ -124,7 +125,9 @@ bool CreateRoomPopup::setup(RoomLayer* parent) {
                     playerCount = util::math::min(playerCount, 10000);
 
                     NetworkManager::get().send(CreateRoomPacket::create(roomName, passwordInput->getString(), RoomSettings {
-                        settingFlags, static_cast<uint16_t>(playerCount)
+                        .flags = settingFlags,
+                        .playerLimit = static_cast<uint16_t>(playerCount),
+                        .fasterReset = util::gd::variable(util::gd::GameVariable::FastRespawn)
                     }));
 
                     parent->startLoading();
@@ -156,7 +159,9 @@ bool CreateRoomPopup::setup(RoomLayer* parent) {
         {"Hidden Room", TAG_PRIVATE},
         {"Open Invites", TAG_OPEN_INV},
         {"Collision", TAG_COLLISION},
-        // {"2-Player Mode", TAG_2P},
+#ifdef GLOBED_DEBUG
+        {"2-Player Mode", TAG_2P},
+#endif
         {"Death Link", TAG_DEATHLINK}
     });
 
@@ -214,7 +219,9 @@ void CreateRoomPopup::onCheckboxToggled(cocos2d::CCObject* p) {
     bool state = !btn->isOn();
 
     switch (p->getTag()) {
+#ifdef GLOBED_DEBUG
         case TAG_2P: settingFlags.twoPlayerMode = state; break;
+#endif
         case TAG_COLLISION: settingFlags.collision = state; break;
         case TAG_OPEN_INV: settingFlags.publicInvites = state; break;
         case TAG_PRIVATE: settingFlags.isHidden = state; break;

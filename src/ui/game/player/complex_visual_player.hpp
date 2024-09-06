@@ -10,7 +10,7 @@
 
 class RemotePlayer;
 
-class ComplexVisualPlayer : public cocos2d::CCNode {
+class GLOBED_DLL ComplexVisualPlayer : public cocos2d::CCNode {
 public:
     static constexpr int SPIDER_DASH_CIRCLE_WAVE_TAG = 234562345;
     static constexpr int SPIDER_DASH_SPRITE_TAG = 234562347;

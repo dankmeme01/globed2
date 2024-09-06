@@ -1,7 +1,8 @@
 #include "invite_popup.hpp"
 
 #include "player_list_cell.hpp"
-#include <data/packets/all.hpp>
+#include <data/packets/client/general.hpp>
+#include <data/packets/server/general.hpp>
 #include <net/manager.hpp>
 #include <managers/error_queues.hpp>
 #include <managers/profile_cache.hpp>

@@ -16,7 +16,9 @@
 #include <managers/game_server.hpp>
 #include <managers/settings.hpp>
 #include <managers/room.hpp>
-#include <data/packets/all.hpp>
+#include <data/packets/client/game.hpp>
+#include <data/packets/client/general.hpp>
+#include <data/packets/server/game.hpp>
 #include <game/module/all.hpp>
 #include <game/camera_state.hpp>
 #include <hooks/game_manager.hpp>
@@ -665,7 +667,7 @@ void GlobedGJBGL::selPeriodicalUpdate(float dt) {
         NetworkManager::get().updateServerPing();
     }
 
-    GLOBED_EVENT(this, selPeriodicalUpdate(dt));
+    GLOBED_EVENT(self, selPeriodicalUpdate(dt));
 }
 
 // selUpdate - runs every frame, increments the non-decreasing time counter, interpolates and updates players
@@ -713,8 +715,6 @@ void GlobedGJBGL::selUpdate(float timescaledDt) {
     auto& bl = BlockListManager::get();
     auto& vpm = VoicePlaybackManager::get();
     auto& settings = GlobedSettings::get();
-
-    bool hasBeenKilled = false;
 
     for (const auto [playerId, remotePlayer] : fields.players) {
         const auto& vstate = fields.interpolator->getPlayerState(playerId);
@@ -779,7 +779,7 @@ void GlobedGJBGL::selUpdate(float timescaledDt) {
         }
     }
 
-    GLOBED_EVENT(this, selUpdate(dt));
+    GLOBED_EVENT(self, selUpdate(dt));
 }
 
 // selUpdateEstimators - runs 30 times a second, updates audio stuff
@@ -793,7 +793,7 @@ void GlobedGJBGL::selUpdateEstimators(float dt) {
         overlay->updateOverlay();
     }
 
-    GLOBED_EVENT(this, selUpdateEstimators(dt));
+    GLOBED_EVENT(self, selUpdateEstimators(dt));
 }
 
 /* Player related functions */
@@ -877,8 +877,6 @@ PlayerData GlobedGJBGL::gatherPlayerData() {
     if (isInEditor) {
         isEditorBuilding = this->m_playbackMode == PlaybackMode::Not;
     }
-
-    log::debug("sending last ts: {}, real: {}", m_fields->lastDeathTimestamp, m_fields->isLastDeathReal);
 
     return PlayerData {
         .timestamp = m_fields->timeCounter,
@@ -1211,18 +1209,21 @@ int GlobedGJBGL::checkCollisions(PlayerObject* player, float dt, bool p2) {
     return retval;
 }
 
-void GlobedGJBGL::loadLevelSettings() {
-    if (!GJBaseGameLayer::get()) {
-        GJBaseGameLayer::loadLevelSettings();
-        return;
-    }
+// TODO: this crashes when megahack force platformer is enabled
+// go beg absolute to use geode patches.
 
-    GLOBED_EVENT(this, loadLevelSettingsPre());
+// void GlobedGJBGL::loadLevelSettings() {
+//     if (!GJBaseGameLayer::get()) {
+//         GJBaseGameLayer::loadLevelSettings();
+//         return;
+//     }
 
-    GJBaseGameLayer::loadLevelSettings();
+//     GLOBED_EVENT(this, loadLevelSettingsPre());
 
-    GLOBED_EVENT(this, loadLevelSettingsPost());
-}
+//     GJBaseGameLayer::loadLevelSettings();
+
+//     GLOBED_EVENT(this, loadLevelSettingsPost());
+// }
 
 class $modify(PlayerObject) {
     static void onModify(auto& self) {

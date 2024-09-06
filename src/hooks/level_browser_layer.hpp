@@ -5,7 +5,7 @@
 
 #include <data/types/gd.hpp>
 
-class $modify(HookedLevelBrowserLayer, LevelBrowserLayer) {
+struct GLOBED_DLL HookedLevelBrowserLayer : geode::Modify<HookedLevelBrowserLayer, LevelBrowserLayer> {
     struct Fields {
         std::unordered_map<LevelId, uint16_t> levels;
     };

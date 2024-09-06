@@ -3,7 +3,7 @@
 #include <defs/geode.hpp>
 #include <data/packets/packet.hpp>
 
-class PacketListener : public cocos2d::CCObject {
+class GLOBED_DLL PacketListener : public cocos2d::CCObject {
 public:
     using CallbackFn = std::function<void(std::shared_ptr<Packet>)>;
 

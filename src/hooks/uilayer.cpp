@@ -3,7 +3,7 @@
 
 #include <Geode/modify/UILayer.hpp>
 
-class $modify(UILayer) {
+struct GLOBED_DLL HookedUILayer : geode::Modify<HookedUILayer, UILayer> {
     static void onModify(auto& self) {
         (void) self.setHookPriority("UILayer::handleKeypress", 9999);
     }

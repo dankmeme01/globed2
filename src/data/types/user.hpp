@@ -62,6 +62,6 @@ struct UserPrivacyFlags : BitfieldBase {
     bool hideRoles;
 };
 
-GLOBED_SERIALIZABLE_STRUCT(UserPrivacyFlags, (
+GLOBED_SERIALIZABLE_BITFIELD(UserPrivacyFlags, (
     hideFromLists, noInvites, hideInGame, hideRoles
 ));

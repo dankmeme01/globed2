@@ -7,7 +7,7 @@
 #include <data/packets/packet.hpp>
 #include <crypto/box.hpp>
 
-class GameSocket {
+class GLOBED_DLL GameSocket {
     static constexpr uint8_t MARKER_CONN_INITIAL = 0xe0;
     static constexpr uint8_t MARKER_CONN_RECOVERY = 0xe1;
 

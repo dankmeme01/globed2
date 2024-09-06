@@ -18,7 +18,7 @@ struct GlobedFeaturedLevelPage {
     bool isLastPage;
 };
 
-class DailyManager : public SingletonBase<DailyManager> {
+class GLOBED_DLL DailyManager : public SingletonBase<DailyManager> {
 public:
     struct Page {
         std::vector<std::pair<GlobedFeaturedLevel, GJGameLevel*>> levels;

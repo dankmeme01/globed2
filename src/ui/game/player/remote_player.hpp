@@ -8,7 +8,7 @@
 #include <game/visual_state.hpp>
 #include <game/camera_state.hpp>
 
-class RemotePlayer : public cocos2d::CCNode {
+class GLOBED_DLL RemotePlayer : public cocos2d::CCNode {
 public:
     bool init(GameCameraState* gameCameraState, PlayerProgressIcon* progressIcon, PlayerProgressArrow* progressArrow, const PlayerAccountData& data);
     void updateAccountData(const PlayerAccountData& data, bool force = false);

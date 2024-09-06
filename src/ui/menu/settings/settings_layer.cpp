@@ -236,6 +236,8 @@ void GlobedSettingsLayer::createSettingsCells(int category) {
             // advanced settings button
             registerSetting(cat, settings.globed.autoconnect, "Advanced", "Advanced settings", Type::AdvancedSettings);
 #endif
+            // link code button
+            registerSetting(cat, settings.globed.autoconnect, "Discord link code", "Primarily for boosters/supporters/staff, code for linking an account to a Discord account", Type::LinkCode);
         } break;
 
         case TAG_TAB_MENUS: {

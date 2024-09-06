@@ -4,7 +4,7 @@
 #include <Geode/modify/PauseLayer.hpp>
 
 // Defines globed-related PauseLayer hooks
-class $modify(GlobedPauseLayer, PauseLayer) {
+struct GLOBED_DLL GlobedPauseLayer : geode::Modify<GlobedPauseLayer, PauseLayer> {
     static void onModify(auto& self) {
         (void) self.setHookPriority("PauseLayer::keyDown", -999999999);
         (void) self.setHookPriority("PauseLayer::goEdit", -999999999);
@@ -42,12 +42,4 @@ class $modify(GlobedPauseLayer, PauseLayer) {
 
     $override
     void onPracticeMode(cocos2d::CCObject*);
-};
-
-// Bugfix for a vanilla bug
-class $modify(PauseLayerBugfix, PauseLayer) {
-    void customSetup();
-
-    // vmt hook
-    void onExitHook();
 };

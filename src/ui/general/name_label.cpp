@@ -57,13 +57,19 @@ void GlobedNameLabel::updateBadges(const std::vector<std::string>& badges) {
 
     if (badges.empty()) return;
 
+    size_t badgeCount = multipleBadge ? badges.size() : 1;
+
     Build<CCNode>::create()
-        .contentSize(5.f * (badges.size() - 1) + badges.size() * util::ui::BADGE_SIZE.width, 0.f)
+        .contentSize(5.f * (badgeCount - 1) + badgeCount * util::ui::BADGE_SIZE.width, 0.f)
         .layout(RowLayout::create()->setGap(5.f))
         .parent(this)
         .store(badgeContainer);
 
-    util::ui::addBadgesToMenu(badges, badgeContainer, 1);
+    if (multipleBadge) {
+        util::ui::addBadgesToMenu(badges, badgeContainer, 1);
+    } else {
+        util::ui::addBadgesToMenu(std::vector<std::string>({badges[0]}), badgeContainer, 1);
+    }
 
     this->updateLayout();
 }
@@ -123,6 +129,29 @@ void GlobedNameLabel::updateColor(const RichColor& color) {
     color.animateLabel(label);
 }
 
+
+void GlobedNameLabel::setMultipleBadgeMode(bool state) {
+    this->multipleBadge = state;
+
+    if (this->multipleBadge) return;
+
+    // if (this->badgeContainer) {
+    //     bool first = true;
+    //     for (auto child : CCArrayExt<CCNode*>(this->badgeContainer->getChildren())) {
+    //         log::debug("child: {}, first: {}", child, first);
+    //         if (first) {
+    //             first = false; continue;
+    //         }
+
+    //         child->removeFromParent();
+    //     }
+    // }
+
+    // badgeContainer->setContentWidth(util::ui::BADGE_SIZE.width);
+    // badgeContainer->updateLayout();
+    // this->updateLayout();
+}
+
 GlobedNameLabel* GlobedNameLabel::create(const std::string& name, const std::vector<std::string>& roles, const RichColor& color, bool bigFont) {
     auto ret = new GlobedNameLabel;
     if (ret->init(name, roles, color, bigFont)) {
@@ -141,7 +170,6 @@ GlobedNameLabel* GlobedNameLabel::create(const std::string& name, cocos2d::CCSpr
         ret->updateBadge(badge);
         return ret;
     }
-
 
     delete ret;
     return nullptr;

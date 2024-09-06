@@ -24,7 +24,7 @@ enum AdminPerm {
     Mute,
     Ban,
     EditRoles,
-    EditFeaturedLevels,
+    // EditFeaturedLevels,
     Admin,
 }
 
@@ -50,7 +50,7 @@ impl ClientThread {
             AdminPerm::Kick => role.kick,
             AdminPerm::KickEveryone => role.kick_everyone,
             AdminPerm::EditRoles => role.edit_role,
-            AdminPerm::EditFeaturedLevels => role.edit_featured_levels,
+            // AdminPerm::EditFeaturedLevels => role.edit_featured_levels,
             AdminPerm::Admin => false,
         }
     }

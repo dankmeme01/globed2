@@ -3,7 +3,7 @@
 
 #include <Geode/modify/LevelEditorLayer.hpp>
 
-class $modify(GlobedLevelEditorLayer, LevelEditorLayer) {
+struct GLOBED_DLL GlobedLevelEditorLayer : geode::Modify<GlobedLevelEditorLayer, LevelEditorLayer> {
     static inline bool fromEditor = false;
 
     // gd hooks

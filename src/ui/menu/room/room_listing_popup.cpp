@@ -2,7 +2,8 @@
 
 #include "room_listing_cell.hpp"
 #include "room_join_popup.hpp"
-#include <data/packets/all.hpp>
+#include <data/packets/client/room.hpp>
+#include <data/packets/server/room.hpp>
 #include <managers/friend_list.hpp>
 #include <managers/settings.hpp>
 #include <net/manager.hpp>

@@ -7,6 +7,7 @@
 #include "invite_popup.hpp"
 #include "create_room_popup.hpp"
 #include "player_list_cell.hpp"
+#include "privacy_settings_popup.hpp"
 #include <data/packets/server/room.hpp>
 #include <data/packets/client/admin.hpp>
 #include <net/manager.hpp>
@@ -94,22 +95,20 @@ bool RoomLayer::init() {
     float buttonSize = util::math::min(32.5f, sidePadding - 5.f);
     this->targetButtonSize = CCSize{buttonSize, buttonSize};
 
-    // invisibility button
-    auto* invisSprite = CCSprite::createWithSpriteFrameName("status-invisible.png"_spr);
-    auto* visSprite = CCSprite::createWithSpriteFrameName("status-visible.png"_spr);
-    util::ui::rescaleToMatch(invisSprite, targetButtonSize);
-    util::ui::rescaleToMatch(visSprite, targetButtonSize);
-
-    Build<CCMenuItemToggler>(CCMenuItemToggler::create(invisSprite, visSprite, this, menu_selector(RoomLayer::onInvisibleClicked)))
-        .id("btn-invisible")
+    // privacy settings
+    Build<CCSprite>::createSpriteName("button-privacy-settings.png"_spr)
+        .with([&](auto* spr) {
+            util::ui::rescaleToMatch(spr, targetButtonSize);
+        })
+        .intoMenuItem([this](auto obj) {
+            this->onPrivacySettingsClicked(obj);
+        })
+        .id("btn-privacy-settings")
         .parent(topRightButtons)
         .zOrder(btnorder::Invisibility)
-        .store(btnInvisible);
+        .store(btnPrivacySettings);
 
-    btnInvisible->m_offButton->m_scaleMultiplier = 1.1f;
-    btnInvisible->m_onButton->m_scaleMultiplier = 1.1f;
-
-    btnInvisible->toggle(!GlobedSettings::get().globed.isInvisible);
+    btnPrivacySettings->m_scaleMultiplier = 1.1f;
 
     // search button
     Build<CCSprite>::createSpriteName("gj_findBtn_001.png")
@@ -497,6 +496,7 @@ void RoomLayer::reloadData(const RoomInfo& info, const std::vector<PlayerRoomPre
         // if we left the room, clear the pinned level
         if (this->shouldRemoveRoomLevel()) {
             listLayer->removeCell(roomLevelCell);
+            listLayer->scrollToTop();
             roomLevelCell = nullptr;
         }
     }
@@ -633,23 +633,10 @@ bool RoomLayer::isLoading() {
     return loadingCircle != nullptr;
 }
 
-void RoomLayer::onInvisibleClicked(CCObject*) {
-    GlobedSettings& settings = GlobedSettings::get();
-
-    if (!settings.flags.seenStatusNotice) {
-        settings.flags.seenStatusNotice = true;
-
-        FLAlertLayer::create(
-            "Invisibility",
-            "This button toggles whether you want to be visible on the global player list or not. You will still be visible to other players on the same level as you.",
-            "OK"
-        )->show();
+void RoomLayer::onPrivacySettingsClicked(CCObject*) {
+    if (auto p = PrivacySettingsPopup::create()) {
+        p->show();
     }
-
-    bool invisible = btnInvisible->isOn();
-    settings.globed.isInvisible = invisible;
-
-    NetworkManager::get().sendUpdatePlayerStatus(settings.getPrivacyFlags());
 }
 
 void RoomLayer::onCopyRoomId(CCObject*) {

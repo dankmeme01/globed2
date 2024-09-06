@@ -3,7 +3,7 @@
 
 #include <Geode/modify/LevelInfoLayer.hpp>
 
-class $modify(HookedLevelInfoLayer, LevelInfoLayer) {
+struct GLOBED_DLL HookedLevelInfoLayer : geode::Modify<HookedLevelInfoLayer, LevelInfoLayer> {
     static void onModify(auto& self) {
         (void) self.setHookPriority("LevelInfoLayer::onPlay", -9999);
     }

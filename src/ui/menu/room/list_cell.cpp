@@ -1,4 +1,6 @@
 #include "list_cell.hpp"
+
+#include <managers/settings.hpp>
 #include <util/gd.hpp>
 #include <util/ui.hpp>
 
@@ -16,6 +18,11 @@ bool CollapsableLevelCell::init(GJGameLevel* level, float width) {
     m_levelCell->setContentSize({ width, HEIGHT });
     m_levelCell->setPosition({ 0.f, 0.f });
     m_levelCell->setVisible(false);
+
+    auto cvoltonID = m_levelCell->m_mainLayer->getChildByIDRecursive("cvolton.betterinfo/level-id-label");
+    if (cvoltonID != nullptr) {
+        cvoltonID->setVisible(false);
+    }
 
     // initialize collapsedCell
 
@@ -79,6 +86,8 @@ void CollapsableLevelCell::setIsCollapsed(bool isCollapsed) {
     }
 
     m_isCollapsed = isCollapsed;
+
+    GlobedSettings::get().globed.pinnedLevelCollapsed = isCollapsed;
 }
 
 void CollapsableLevelCell::onOpenLevel(CCObject* sender) {
@@ -109,16 +118,18 @@ bool ListCellWrapper::init(const PlayerRoomPreviewAccountData& data, float cellW
     return true;
 }
 
-bool ListCellWrapper::init(GJGameLevel* level, float width, CollapsedCallback callback) {
+bool ListCellWrapper::init(GJGameLevel* level, float width, CollapsedCallback&& callback) {
     roomCell = CollapsableLevelCell::create(level, width);
     this->addChild(roomCell);
 
-    auto rightMenu = Build<CCMenu>::create()
+    this->callback = std::move(callback);
+
+    Build<CCMenu>::create()
         .pos(width - 20.f, CollapsableLevelCell::HEIGHT - CollapsableLevelCell::COLLAPSED_HEIGHT / 2.f)
         .anchorPoint(0.f, 0.5f)
         .parent(roomCell)
         .id("right-menu")
-        .collect();
+        .store(rightMenu);
 
     float scaleFactor = 0.4f;
 
@@ -131,30 +142,32 @@ bool ListCellWrapper::init(GJGameLevel* level, float width, CollapsedCallback ca
     expandedSprite->setRotation(-90);
     expandedSprite->setScale(scaleFactor);
 
-    Build<CCMenuItemToggler>::createToggle(collapsedSprite, expandedSprite, [this, callback, rightMenu](CCMenuItemToggler* toggler) {
-        bool isCollapsed;
-        if (!toggler->isOn()) {
-            isCollapsed = true;
-        } else {
-            isCollapsed = false;
-        }
-        roomCell->setIsCollapsed(isCollapsed);
-
-        if (auto parent = this->getParent()) {
-            parent->setContentSize(this->getContentSize());
-        }
-
-        // menu
-        auto topPad = CollapsableLevelCell::COLLAPSED_HEIGHT / 2.f;
-        rightMenu->setPositionY(isCollapsed ? topPad : CollapsableLevelCell::HEIGHT - topPad);
-
-        callback(roomCell->m_isCollapsed);
+    auto* toggler = Build<CCMenuItemToggler>::createToggle(collapsedSprite, expandedSprite, [this, callback](CCMenuItemToggler* toggler) {
+        this->onCollapse(!toggler->isOn());
     })
-        .parent(rightMenu);
+        .parent(rightMenu)
+        .collect();
 
-    roomCell->setIsCollapsed(false);
+    bool isCollapsed = GlobedSettings::get().globed.pinnedLevelCollapsed;
+    toggler->toggle(isCollapsed);
+
+    this->onCollapse(isCollapsed);
 
     return true;
+}
+
+void ListCellWrapper::onCollapse(bool isCollapsed) {
+    roomCell->setIsCollapsed(isCollapsed);
+
+    if (auto parent = this->getParent()) {
+        parent->setContentSize(this->getContentSize());
+    }
+
+    // menu
+    auto topPad = CollapsableLevelCell::COLLAPSED_HEIGHT / 2.f;
+    rightMenu->setPositionY(isCollapsed ? topPad : CollapsableLevelCell::HEIGHT - topPad);
+
+    this->callback(roomCell->m_isCollapsed);
 }
 
 ListCellWrapper* ListCellWrapper::create(const PlayerRoomPreviewAccountData& data, float cellWidth, bool forInviting, bool isIconLazyLoad) {
@@ -173,12 +186,12 @@ ListCellWrapper* ListCellWrapper::create(const PlayerRoomPreviewAccountData& dat
     return nullptr;
 }
 
-ListCellWrapper* ListCellWrapper::create(GJGameLevel* level, float width, CollapsedCallback callback) {
+ListCellWrapper* ListCellWrapper::create(GJGameLevel* level, float width, CollapsedCallback&& callback) {
     auto ret = new ListCellWrapper;
     if (ret->init(
         level,
         width,
-        callback
+        std::forward<CollapsedCallback>(callback)
     )) {
         ret->autorelease();
         return ret;

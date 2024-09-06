@@ -3,7 +3,7 @@
 
 #include <Geode/modify/MenuLayer.hpp>
 
-class $modify(HookedMenuLayer, MenuLayer) {
+struct GLOBED_DLL HookedMenuLayer : geode::Modify<HookedMenuLayer, MenuLayer> {
     struct Fields {
         bool btnActive = false;
         Ref<CCMenuItemSpriteExtra> globedBtn = nullptr;

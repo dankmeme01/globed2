@@ -3,7 +3,7 @@
 
 #include <Geode/modify/GameManager.hpp>
 
-class $modify(HookedGameManager, GameManager) {
+struct GLOBED_DLL HookedGameManager : geode::Modify<HookedGameManager, GameManager> {
     struct Fields {
         std::unordered_map<int, std::unordered_map<int, Ref<cocos2d::CCTexture2D>>> iconCache;
         std::unordered_set<std::string> loadedFrames;

@@ -1,7 +1,7 @@
 #pragma once
 #include <defs/all.hpp>
 
-class GlobedUserActionsPopup : public geode::Popup<int, cocos2d::CCArray*> {
+class GLOBED_DLL GlobedUserActionsPopup : public geode::Popup<int, cocos2d::CCArray*> {
 public:
     static constexpr float POPUP_WIDTH = 200.f;
     static constexpr float POPUP_HEIGHT = 90.f;

@@ -85,9 +85,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-# i am crying so hard right now
+# export some symbols
+target_compile_definitions(${PROJECT_NAME} PRIVATE GLOBED_EXPORTING)
+
 if (CMAKE_HOST_SYSTEM MATCHES "Linux" AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    add_compile_options("-march=skylake")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GLOBED_LINUX_COMPILATION=1)
 endif()
 
 if (NOT DEFINED ENV{GEODE_SDK})
@@ -138,6 +140,8 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${PROJECT_NAME} PRIVATE "-Wno-deprecated-declarations")
+    # target_compile_options(${PROJECT_NAME} PRIVATE "-ftime-trace")
+    # target_compile_options(asp PRIVATE "-ftime-trace")
     # if (WIN32)
     #     target_compile_options(${PROJECT_NAME} PRIVATE "-Wno-vla-cxx-extension")
     # endif()
@@ -200,7 +204,7 @@ endif()
 
 # Windows - link to winsock and wmi
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} ws2_32 wbemuuid)
+    target_link_libraries(${PROJECT_NAME} ws2_32)
 endif()
 
 # Apple - link to iokit

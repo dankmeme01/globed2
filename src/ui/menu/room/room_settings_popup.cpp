@@ -66,7 +66,9 @@ void RoomSettingsPopup::onSettingClicked(cocos2d::CCObject* sender) {
         case TAG_INVITE_ONLY: currentSettings.flags.isHidden = enabled; break;
         case TAG_PUBLIC_INVITES: currentSettings.flags.publicInvites = enabled; break;
         case TAG_COLLISION: currentSettings.flags.collision = enabled; break;
+#ifdef GLOBED_DEBUG
         case TAG_TWO_PLAYER: currentSettings.flags.twoPlayerMode = enabled; break;
+#endif
         case TAG_DEATHLINK: currentSettings.flags.deathlink = enabled; break;
     }
 

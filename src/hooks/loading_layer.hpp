@@ -12,7 +12,7 @@
 # define GLOBED_LOADING_FINISHED_MIDHOOK 1
 #endif
 
-class $modify(HookedLoadingLayer, LoadingLayer) {
+struct GLOBED_DLL HookedLoadingLayer : geode::Modify<HookedLoadingLayer, LoadingLayer> {
     struct Fields {
         int preloadingStage = 0;
         util::time::system_time_point loadingStartedTime;

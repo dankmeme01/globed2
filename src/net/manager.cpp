@@ -29,9 +29,9 @@ using namespace asp;
 using namespace geode::prelude;
 using ConnectionState = NetworkManager::ConnectionState;
 
-static constexpr uint16_t MIN_PROTOCOL_VERSION = 11;
-static constexpr uint16_t MAX_PROTOCOL_VERSION = 11;
-static constexpr std::array SUPPORTED_PROTOCOLS = std::to_array<uint16_t>({11});
+static constexpr uint16_t MIN_PROTOCOL_VERSION = 12;
+static constexpr uint16_t MAX_PROTOCOL_VERSION = 12;
+static constexpr std::array SUPPORTED_PROTOCOLS = std::to_array<uint16_t>({12});
 
 static bool isProtocolSupported(uint16_t proto) {
 #ifdef GLOBED_DEBUG
@@ -70,15 +70,8 @@ static void* addrFromWeakRef(const WeakRef<T>& ref) {
     return dummy.ctrl ? dummy.ctrl->get() : nullptr;
 }
 
-template <typename T>
-static const WeakRefController& controllerFromWeakRef(const WeakRef<T>& ref) {
-    // Do not do this.
-    auto dummy = reinterpret_cast<const WeakRefDummy&>(ref);
-    return *dummy.ctrl;
-}
-
 // Packet listener pool. Most of the functions must not be used on a different thread than main.
-class PacketListenerPool : public CCObject {
+class GLOBED_DLL PacketListenerPool : public CCObject {
 public:
     PacketListenerPool(const PacketListenerPool&) = delete;
     PacketListenerPool(PacketListenerPool&&) = delete;
@@ -143,7 +136,9 @@ public:
     void removeDeadListeners() {
         for (auto& [id, listeners] : listeners) {
             for (int i = listeners.size() - 1; i >= 0; i--) {
+#ifdef GLOBED_DEBUG
                 auto addr = addrFromWeakRef(listeners[i]);
+#endif
 
                 if (!listeners[i].valid()) {
 #ifdef GLOBED_DEBUG
@@ -194,7 +189,7 @@ private:
     }
 };
 
-class NetworkManager::Impl {
+class GLOBED_DLL NetworkManager::Impl {
 protected:
     friend class NetworkManager;
     friend class PacketListenerPool;
@@ -996,7 +991,7 @@ protected:
         // poll for any incoming packets
 
         while (auto task_ = taskQueue.popTimeout(util::time::millis(50))) {
-            auto task = task_.value();
+            auto task = std::move(task_.value());
 
             if (std::holds_alternative<TaskPingServers>(task)) {
                 this->handlePingTask();
@@ -1252,7 +1247,8 @@ void NetworkManager::unregisterPacketListener(packetid_t packet, PacketListener*
 MAKE_SENDER2(UpdatePlayerStatus, (const UserPrivacyFlags& flags), (flags))
 MAKE_SENDER2(RequestRoomPlayerList, (), ())
 MAKE_SENDER2(LeaveRoom, (), ())
-MAKE_SENDER2(CloseRoom, (), ())
+MAKE_SENDER2(CloseRoom, (uint32_t roomId), (roomId))
+MAKE_SENDER2(LinkCodeRequest, (), ())
 
 void NetworkManager::sendRequestPlayerCount(LevelId id) {
     impl->send(RequestPlayerCountPacket::create(std::vector({id})));

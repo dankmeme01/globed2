@@ -24,10 +24,11 @@ struct RoomSettings {
     RoomSettingsFlags flags;
     uint16_t playerLimit;
     LevelId levelId;
+    bool fasterReset;
 };
 
 GLOBED_SERIALIZABLE_STRUCT(RoomSettings, (
-    flags, playerLimit, levelId
+    flags, playerLimit, levelId, fasterReset
 ))
 
 struct RoomInfo {

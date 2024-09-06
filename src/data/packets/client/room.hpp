@@ -85,5 +85,8 @@ class CloseRoomPacket : public Packet {
     GLOBED_PACKET(13007, CloseRoomPacket, false, false)
 
     CloseRoomPacket() {}
+    CloseRoomPacket(uint32_t roomId) : roomId(roomId) {}
+
+    uint32_t roomId;
 };
-GLOBED_SERIALIZABLE_STRUCT(CloseRoomPacket, ());
+GLOBED_SERIALIZABLE_STRUCT(CloseRoomPacket, (roomId));

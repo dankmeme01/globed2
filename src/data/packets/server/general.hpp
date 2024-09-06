@@ -46,3 +46,14 @@ class RolesUpdatedPacket : public Packet {
 };
 
 GLOBED_SERIALIZABLE_STRUCT(RolesUpdatedPacket, (specialUserData));
+
+// 21004 - LinkCodeResponsePacket
+class LinkCodeResponsePacket : public Packet {
+    GLOBED_PACKET(21004, LinkCodeResponsePacket, false, false);
+
+    LinkCodeResponsePacket() {}
+
+    uint32_t linkCode;
+};
+
+GLOBED_SERIALIZABLE_STRUCT(LinkCodeResponsePacket, (linkCode));

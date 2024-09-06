@@ -5,7 +5,7 @@
 
 #include <util/time.hpp>
 
-class $modify(GlobedAppDelegate, AppDelegate) {
+struct GLOBED_DLL GlobedAppDelegate : geode::Modify<GlobedAppDelegate, AppDelegate> {
 #ifdef GEODE_IS_ANDROID
     $override
     void applicationDidEnterBackground();

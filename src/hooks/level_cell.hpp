@@ -4,7 +4,7 @@
 
 #include <Geode/modify/LevelCell.hpp>
 
-class $modify(GlobedLevelCell, LevelCell) {
+struct GLOBED_DLL GlobedLevelCell : geode::Modify<GlobedLevelCell, LevelCell> {
     struct Fields {
         cocos2d::CCLabelBMFont* playerCountLabel = nullptr;
         cocos2d::CCSprite* playerCountIcon = nullptr;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/Result.hpp>
+#include <defs/platform.hpp>
 
 #include <util/singleton.hpp>
 
@@ -19,7 +20,7 @@ namespace cocos2d {
     class CCNode;
 }
 
-class NetworkManager : public SingletonBase<NetworkManager> {
+class GLOBED_DLL NetworkManager : public SingletonBase<NetworkManager> {
 protected:
     friend class SingletonBase;
     NetworkManager();
@@ -132,9 +133,10 @@ public:
     void sendUpdatePlayerStatus(const UserPrivacyFlags& flags);
     void sendRequestRoomPlayerList();
     void sendLeaveRoom();
-    void sendCloseRoom();
+    void sendCloseRoom(uint32_t roomId = 0);
     void sendRequestPlayerCount(LevelId id);
     void sendRequestPlayerCount(std::vector<LevelId> ids);
+    void sendLinkCodeRequest();
 
 private:
     class Impl;

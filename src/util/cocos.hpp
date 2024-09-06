@@ -1,11 +1,12 @@
 #pragma once
+#include <defs/platform.hpp>
 #include <cocos2d.h>
 #include <Geode/c++stl/string.hpp>
 
 namespace util::cocos {
     // Loads the given images in separate threads, in parallel. Blocks the thread until all images have been loaded.
     // This will ONLY load .png images.
-    void loadAssetsParallel(const std::vector<std::string>& images);
+    GLOBED_DLL void loadAssetsParallel(const std::vector<std::string>& images);
 
     enum class AssetPreloadStage {
         DeathEffect,
@@ -21,7 +22,7 @@ namespace util::cocos {
 
     void preloadLogImpl(std::string_view message);
 
-    void preloadAssets(AssetPreloadStage stage);
+    GLOBED_DLL void preloadAssets(AssetPreloadStage stage);
 
     bool forcedSkipPreload();
     bool shouldTryToPreload(bool onLoading);
@@ -55,5 +56,5 @@ namespace util::cocos {
 
     void renderNodeToFile(cocos2d::CCNode*, const std::filesystem::path& dest);
 
-    void tryLoadDeathEffect(int id);
+    GLOBED_DLL void tryLoadDeathEffect(int id);
 }

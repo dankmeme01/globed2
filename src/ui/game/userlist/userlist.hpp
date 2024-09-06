@@ -5,7 +5,7 @@
 #include "user_cell.hpp"
 #include <ui/general/list/list.hpp>
 
-class GlobedUserListPopup : public geode::Popup<> {
+class GLOBED_DLL GlobedUserListPopup : public geode::Popup<> {
 public:
     static constexpr float POPUP_WIDTH = 400.f;
     static constexpr float POPUP_HEIGHT = 280.f;

@@ -28,9 +28,9 @@ EventOutcome DeathlinkModule::resetLevel() {
 }
 
 EventOutcome DeathlinkModule::destroyPlayerPre(PlayerObject* player, GameObject* object) {
-    // if deathlink is enabled, toggle faster reset off
+    // if deathlink is enabled, toggle faster reset depending on room setting
     this->oldFastReset = util::gd::variable(GameVariable::FastRespawn);
-    util::gd::setVariable(GameVariable::FastRespawn, false);
+    util::gd::setVariable(GameVariable::FastRespawn, this->gameLayer->m_fields->roomSettings.fasterReset);
 
     return EventOutcome::Continue;
 }
@@ -63,9 +63,7 @@ void DeathlinkModule::selUpdate(float dt) {
 
 void DeathlinkModule::forceKill() {
     if (auto pl = this->getPlayLayer()) {
-        bool indp = pl->m_fields->insideDestroyPlayer;
-
-        if (gameLayer->m_fields->setupWasCompleted && !indp) {
+        if (gameLayer->m_fields->setupWasCompleted) {
             pl->forceKill(pl->m_player1);
         }
     }

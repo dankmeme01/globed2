@@ -7,7 +7,7 @@ class ComplexVisualPlayer;
 
 constexpr int COMPLEX_PLAYER_OBJECT_TAG = 3458738;
 
-class $modify(ComplexPlayerObject, PlayerObject) {
+struct GLOBED_DLL ComplexPlayerObject : geode::Modify<ComplexPlayerObject, PlayerObject> {
     // those are needed so that our changes don't impact actual PlayerObject instances
     bool vanilla();
 

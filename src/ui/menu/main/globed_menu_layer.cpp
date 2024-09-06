@@ -371,7 +371,7 @@ void GlobedMenuLayer::navigateToServerLayer() {
 
 void GlobedMenuLayer::keyDown(enumKeyCodes key) {
     if (key == enumKeyCodes::KEY_F8) {
-        bool authorized = AdminManager::get().authorized();
+        bool authorized = AdminManager::get().canModerate();
         if (authorized) {
             AdminPopup::create()->show();
         } else {

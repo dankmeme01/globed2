@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use super::*;
 
 #[derive(Responder)]
@@ -7,7 +9,12 @@ pub struct NotFoundResponder {
 }
 
 impl NotFoundResponder {
-    pub fn new(inner: String) -> Self {
+    pub fn new<T: Into<Cow<'static, str>>>(inner: T) -> Self {
+        let inner = match inner.into() {
+            Cow::Borrowed(borrowed) => borrowed.to_owned(),
+            Cow::Owned(owned) => owned,
+        };
+
         Self { inner }
     }
 }

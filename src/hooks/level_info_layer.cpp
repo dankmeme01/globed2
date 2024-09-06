@@ -25,7 +25,7 @@ bool HookedLevelInfoLayer::init(GJGameLevel* level, bool challenge) {
     if (!LevelInfoLayer::init(level, challenge)) return false;
 
     auto& am = AdminManager::get();
-    if (am.authorized() && am.getRole().canModerate()) {
+    if (am.canModerate()) {
         this->addLevelSendButton();
     }
 
@@ -149,12 +149,15 @@ void HookedLevelInfoLayer::addRoomLevelButton() {
     auto rightMenu = this->getChildByIDRecursive("right-side-menu");
     if (!rightMenu) return;
 
-    Build<CCSprite>::createSpriteName("GJ_shareBtn_001.png")
-        .scale(0.625f)
+    Build<CCSprite>::createSpriteName("button-pin-level.png"_spr)
         .intoMenuItem([this] {
-            auto settings = RoomManager::get().getInfo().settings;
-            settings.levelId = this->m_level->m_levelID.value();
-            NetworkManager::get().send(UpdateRoomSettingsPacket::create(settings));
+            geode::createQuickPopup("Globed", "Are you sure you want to <cy>pin</c> this level to the <cg>current room</c>?", "No", "Yes", [this](auto*, bool yes) {
+                if (yes) {
+                    auto settings = RoomManager::get().getInfo().settings;
+                    settings.levelId = this->m_level->m_levelID.value();
+                    NetworkManager::get().send(UpdateRoomSettingsPacket::create(settings));
+                }
+            });
         })
         .id("share-room-btn"_spr)
         .parent(rightMenu);

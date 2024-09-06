@@ -350,6 +350,7 @@ impl AccountVerifier {
                 continue;
             };
 
+            #[cfg(debug_assertions)]
             let age = (*age).to_owned();
 
             // info!("adding message to cache: {author_id}, {author_name}, {authcode}");

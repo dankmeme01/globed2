@@ -4,7 +4,7 @@
 
 #include <util/time.hpp>
 
-class $modify(HookedFLAlertLayer, FLAlertLayer) {
+struct GLOBED_DLL HookedFLAlertLayer : geode::Modify<HookedFLAlertLayer, FLAlertLayer> {
     struct Fields {
         bool blockClosing = false;
         util::time::time_point blockClosingUntil;

@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    hash::{DefaultHasher, Hash, Hasher},
     net::IpAddr,
     path::PathBuf,
     sync::{
@@ -41,6 +42,14 @@ pub struct ActiveChallenge {
     pub started: SystemTime,
 }
 
+#[derive(Clone)]
+pub struct LoginEntry {
+    pub account_id: i32,
+    pub name: String,
+    pub time: SystemTime,
+    pub link_code: u32,
+}
+
 pub struct ServerStateData {
     pub config_path: PathBuf,
     pub config: ServerConfig,
@@ -50,6 +59,7 @@ pub struct ServerStateData {
     pub challenge_pubkey: GenericArray<u8, U32>,
     pub challenge_box: XSalsa20Poly1305,
     pub http_client: reqwest::Client,
+    pub last_logins: HashMap<u64, LoginEntry>, // { hash of lowercase username : entry }
 }
 
 impl ServerStateData {
@@ -79,6 +89,7 @@ impl ServerStateData {
             challenge_pubkey,
             challenge_box,
             http_client,
+            last_logins: HashMap::new(),
         }
     }
 
@@ -173,9 +184,75 @@ impl ServerStateData {
     }
 
     pub fn clear_outdated_challenges(&mut self) {
+        let now = SystemTime::now();
+
         // remove all challenges older than 2 hours
         self.active_challenges
-            .retain(|_, v| SystemTime::now().duration_since(v.started).unwrap_or_default().as_secs() < 60 * 60 * 2);
+            .retain(|_, v| now.duration_since(v.started).unwrap_or_default().as_secs() < 60 * 60 * 2);
+
+        // remove logins older than 24 hours
+        self.last_logins
+            .retain(|_, v| now.duration_since(v.time).unwrap_or_default().as_secs() < 60 * 60 * 24);
+    }
+
+    // None to bypass verification
+    pub fn get_login(&self, name: &str, link_code: Option<u32>) -> Option<&LoginEntry> {
+        let lowercase = name.trim_start().to_lowercase();
+
+        let mut hasher = DefaultHasher::new();
+        lowercase.hash(&mut hasher);
+        let hash = hasher.finish();
+
+        let login = self.last_logins.get(&hash);
+
+        login.and_then(|user| {
+            // if link_code is None, or it matches, return the entry
+            if link_code.map(|code| code == user.link_code && user.link_code != 0).unwrap_or(true) {
+                Some(user)
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn get_username_from_login(&self, account_id: i32) -> Option<&str> {
+        self.last_logins
+            .iter()
+            .find(|(_k, v)| v.account_id == account_id)
+            .map(|x| x.1.name.as_str())
+    }
+
+    pub fn put_login(&mut self, name: &str, account_id: i32, link_code: u32) {
+        let lowercase = name.trim_start().to_lowercase();
+
+        let mut hasher = DefaultHasher::new();
+        lowercase.hash(&mut hasher);
+        let hash = hasher.finish();
+
+        self.last_logins.insert(
+            hash,
+            LoginEntry {
+                account_id,
+                name: name.to_owned(),
+                time: SystemTime::now(),
+                link_code,
+            },
+        );
+    }
+
+    pub fn remove_login_code(&mut self, name: &str) {
+        let lowercase = name.trim_start().to_lowercase();
+
+        let mut hasher = DefaultHasher::new();
+        lowercase.hash(&mut hasher);
+        let hash = hasher.finish();
+
+        let data = self.last_logins.get_mut(&hash);
+
+        // reset so people cant relog again, just in case
+        if let Some(data) = data {
+            data.link_code = 0;
+        }
     }
 }
 

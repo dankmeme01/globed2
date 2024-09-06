@@ -7,7 +7,7 @@
 
 class GlobedUserListPopup;
 
-class GlobedUserCell : public cocos2d::CCLayer {
+class GLOBED_DLL GlobedUserCell : public cocos2d::CCLayer {
 public:
     static constexpr float CELL_HEIGHT = 25.f;
 

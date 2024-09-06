@@ -27,13 +27,19 @@ protected:
 
 class ListCellWrapper : public cocos2d::CCNode {
 public:
+    using CollapsedCallback = std::function<void(bool)>;
+
     PlayerListCell* playerCell = nullptr;
     CollapsableLevelCell* roomCell = nullptr;
+    cocos2d::CCMenu* rightMenu = nullptr;
+    CollapsedCallback callback;
 
     static ListCellWrapper* create(const PlayerRoomPreviewAccountData& data, float cellWidth, bool forInviting, bool isIconLazyLoad);
     bool init(const PlayerRoomPreviewAccountData& data, float cellWidth, bool forInviting, bool isIconLazyLoad);
 
-    using CollapsedCallback = std::function<void(bool)>;
-    static ListCellWrapper* create(GJGameLevel* level, float width, CollapsedCallback callback);
-    bool init(GJGameLevel* level, float width, CollapsedCallback callback);
+    static ListCellWrapper* create(GJGameLevel* level, float width, CollapsedCallback&& callback);
+    bool init(GJGameLevel* level, float width, CollapsedCallback&& callback);
+
+protected:
+    void onCollapse(bool state);
 };

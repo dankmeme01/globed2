@@ -1,7 +1,7 @@
 #include "game_socket.hpp"
 
 #include <data/bytebuffer.hpp>
-#include <data/packets/all.hpp>
+#include <data/packets/match.hpp>
 #include <util/debug.hpp>
 #include <util/net.hpp>
 #include <util/format.hpp>

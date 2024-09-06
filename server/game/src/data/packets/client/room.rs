@@ -41,7 +41,9 @@ pub struct RequestRoomListPacket;
 
 #[derive(Packet, Decodable)]
 #[packet(id = 13007)]
-pub struct CloseRoomPacket;
+pub struct CloseRoomPacket {
+    pub room_id: u32,
+}
 
 #[derive(Packet, Decodable)]
 #[packet(id = 13008)]

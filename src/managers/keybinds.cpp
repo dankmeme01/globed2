@@ -175,24 +175,23 @@ static Key convertGlfwKey(int key) {
     }
 }
 
-#include <Geode/modify/CCEGLView.hpp>
+// #include <Geode/modify/CCEGLView.hpp>
 
-class $modify(CCEGLView) {
-    void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        if (action == GLFW_PRESS) {
-            KeybindsManager::get().handlePress(convertGlfwKey(key));
-        } else if (action == GLFW_RELEASE) {
-            KeybindsManager::get().handleRelease(convertGlfwKey(key));
-        }
+// class $modify(CCEGLView) {
+//     void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+//         if (action == GLFW_PRESS) {
+//             KeybindsManager::get().handlePress(convertGlfwKey(key));
+//         } else if (action == GLFW_RELEASE) {
+//             KeybindsManager::get().handleRelease(convertGlfwKey(key));
+//         }
 
-        CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
-    }
-};
+//         CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
+//     }
+// };
 
 #else
 
 Key convertCocosKey(enumKeyCodes key) {
-
     switch (key) {
         case KEY_A: return Key::A;
         case KEY_B: return Key::B;
@@ -310,18 +309,19 @@ Key convertCocosKey(enumKeyCodes key) {
     }
 }
 
-#include <Geode/modify/CCKeyboardDispatcher.hpp>
+// TODO: mac m1 crash?
+// #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
-class $modify(CCKeyboardDispatcher) {
-    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool repeat) {
-        if (down) {
-            KeybindsManager::get().handlePress(convertCocosKey(key));
-        } else if (!down) {
-            KeybindsManager::get().handleRelease(convertCocosKey(key));
-        }
+// class $modify(CCKeyboardDispatcher) {
+//     bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool repeat) {
+//         if (down) {
+//             KeybindsManager::get().handlePress(convertCocosKey(key));
+//         } else if (!down) {
+//             KeybindsManager::get().handleRelease(convertCocosKey(key));
+//         }
 
-        return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, repeat);
-    }
-};
+//         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, repeat);
+//     }
+// };
 
 #endif

@@ -99,3 +99,19 @@
 #endif
 
 constexpr bool GLOBED_LITTLE_ENDIAN = true;
+
+// dllexport macro
+
+#ifdef GEODE_IS_WINDOWS
+    #ifdef GLOBED_EXPORTING
+        #define GLOBED_DLL __declspec(dllexport)
+    #else
+        #define GLOBED_DLL __declspec(dllimport)
+    #endif
+#else
+    #ifdef GLOBED_EXPORTING
+        #define GLOBED_DLL __attribute__((visibility("default")))
+    #else
+        #define GLOBED_DLL
+    #endif
+#endif

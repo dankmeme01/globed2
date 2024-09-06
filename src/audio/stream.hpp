@@ -11,7 +11,7 @@
 #include <asp/sync.hpp>
 #include <util/time.hpp>
 
-class AudioStream {
+class GLOBED_DLL AudioStream {
 public:
     AudioStream(AudioDecoder&& decoder);
     ~AudioStream();

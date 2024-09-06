@@ -82,7 +82,6 @@ private:
     }
 };
 
-
 template <typename CellType>
     requires (std::is_base_of_v<cocos2d::CCNode, CellType>)
 class GlobedListLayer : public cocos2d::CCLayer {
@@ -407,7 +406,10 @@ protected:
         }
 
         for (WrapperCell* child : CCArrayExt<WrapperCell*>(scrollLayer->m_contentLayer->getChildren())) {
-            child->setContentHeight(child->inner->getContentHeight());
+            float height = child->inner->getContentHeight();
+
+            child->setContentHeight(height);
+            child->background->setContentHeight(height);
         }
 
         this->updateCells();

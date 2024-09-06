@@ -6,7 +6,7 @@
 
 #include <util/singleton.hpp>
 
-class VoiceRecordingManager : public SingletonBase<VoiceRecordingManager> {
+class GLOBED_DLL VoiceRecordingManager : public SingletonBase<VoiceRecordingManager> {
 protected:
     VoiceRecordingManager();
     friend class SingletonBase;

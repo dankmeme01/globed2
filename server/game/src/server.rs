@@ -278,7 +278,6 @@ impl GameServer {
                 if let PacketHandlingError::IOError(ref e) = e
                     && should_ignore_error(e)
                 {
-                    warn!("client loop error: {e}");
                     return;
                 }
 
@@ -477,14 +476,20 @@ impl GameServer {
     }
 
     #[inline]
-    pub fn for_every_player_preview_in_room<F, A>(&self, room_id: u32, f: F, additional: &mut A) -> usize
+    pub fn for_every_player_preview_in_room<F, A>(&self, room_id: u32, f: F, additional: &mut A, force_visibility: bool) -> usize
     where
         F: Fn(&PlayerPreviewAccountData, usize, &mut A) -> bool,
     {
         self.clients
             .lock()
             .values()
-            .filter(|thr| thr.authenticated() && thr.room_id.load(Ordering::Relaxed) == room_id)
+            .filter(|thr| {
+                if !thr.authenticated() || thr.room_id.load(Ordering::Relaxed) != room_id {
+                    return false;
+                }
+
+                force_visibility || !thr.privacy_settings.lock().get_hide_from_lists()
+            })
             .map(|thread| thread.account_data.lock().make_preview(!thread.privacy_settings.lock().get_hide_roles()))
             .fold(0, |count, preview| count + usize::from(f(&preview, count, additional)))
     }
@@ -514,7 +519,7 @@ impl GameServer {
 
                 let show_roles = !thread.privacy_settings.lock().get_hide_roles();
 
-                thread.account_data.lock().make_room_preview(level_id, show_roles)
+                thread.account_data.lock().make_room_preview(level_id, show_roles || force_visibility)
             })
             .fold(0, |count, preview| count + usize::from(f(&preview, count, additional)))
     }
@@ -559,7 +564,7 @@ impl GameServer {
     }
 
     #[inline]
-    pub fn get_player_previews_in_room(&self, room_id: u32) -> Vec<PlayerPreviewAccountData> {
+    pub fn get_player_previews_in_room(&self, room_id: u32, force_visibility: bool) -> Vec<PlayerPreviewAccountData> {
         let player_count = self.state.room_manager.with_any(room_id, |room| room.manager.get_total_player_count());
 
         let mut vec = Vec::with_capacity(player_count);
@@ -571,6 +576,7 @@ impl GameServer {
                 true
             },
             &mut vec,
+            force_visibility,
         );
 
         vec
@@ -587,12 +593,21 @@ impl GameServer {
     }
 
     #[inline]
-    pub fn get_player_account_data(&self, account_id: i32) -> Option<PlayerAccountData> {
+    pub fn get_player_account_data(&self, account_id: i32, force_visibility: bool) -> Option<PlayerAccountData> {
         self.clients
             .lock()
             .values()
-            .find(|thr| thr.account_id.load(Ordering::Relaxed) == account_id)
-            .map(|thr| thr.account_data.lock().clone())
+            .find(|thr| thr.account_id.load(Ordering::Relaxed) == account_id && (force_visibility || !thr.privacy_settings.lock().get_hide_in_game()))
+            .map(|thr| {
+                let mut data = thr.account_data.lock().clone();
+                let settings = thr.privacy_settings.lock();
+
+                if settings.get_hide_roles() && !force_visibility {
+                    data.special_user_data.roles = None;
+                }
+
+                data
+            })
     }
 
     #[inline]

@@ -18,6 +18,9 @@ public:
 
     void openUserPopup(const PlayerRoomPreviewAccountData& rpdata);
 
+    // Shorthand for `authorized() && getRole().canModerate()`
+    bool canModerate();
+
 private:
     asp::AtomicBool authorized_;
     ComputedRole role = {};

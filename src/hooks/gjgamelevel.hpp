@@ -4,7 +4,7 @@
 #include <Geode/modify/GJGameLevel.hpp>
 
 // revolutionary
-class $modify(HookedGJGameLevel, GJGameLevel) {
+struct GLOBED_DLL HookedGJGameLevel : geode::Modify<HookedGJGameLevel, GJGameLevel> {
     struct Fields {
         bool shouldTransitionWithPopScene = false;
         int rateTier = -1;

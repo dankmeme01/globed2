@@ -12,7 +12,7 @@ impl ClientThread {
         let _ = gs_needauth!(self);
 
         self.send_packet_dynamic(&GlobalPlayerListPacket {
-            players: self.game_server.get_player_previews_in_room(0),
+            players: self.game_server.get_player_previews_in_room(0, self.can_moderate()),
         })
         .await
     });
@@ -59,7 +59,7 @@ impl ClientThread {
     });
 
     gs_handler!(self, handle_set_player_status, UpdatePlayerStatusPacket, packet, {
-        let _ = gs_needauth!(self);
+        let account_id = gs_needauth!(self);
 
         let mut p = self.privacy_settings.lock();
         p.clone_from(&packet.flags);
@@ -71,6 +71,22 @@ impl ClientThread {
             p.set_hide_roles(false);
         }
 
+        let room_id = self.room_id.load(Ordering::Relaxed);
+
+        self.game_server.state.room_manager.with_any(room_id, |pm| {
+            if let Some(player) = pm.manager.get_player_data_mut(account_id) {
+                player.is_invisible = packet.flags.get_hide_in_game();
+            }
+        });
+
         Ok(())
+    });
+
+    gs_handler!(self, handle_link_code_request, LinkCodeRequestPacket, _packet, {
+        let _ = gs_needauth!(self);
+
+        let link_code = self.link_code.load(Ordering::Relaxed);
+
+        self.send_packet_static(&LinkCodeResponsePacket { link_code }).await
     });
 }

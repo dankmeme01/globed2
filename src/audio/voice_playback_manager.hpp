@@ -11,7 +11,7 @@
 * at the same time efficiently and without memory leaks (?).
 * Not thread safe.
 */
-class VoicePlaybackManager : public SingletonBase<VoicePlaybackManager> {
+class GLOBED_DLL VoicePlaybackManager : public SingletonBase<VoicePlaybackManager> {
 public:
 #ifdef GLOBED_VOICE_SUPPORT
     Result<> playFrameStreamed(int playerId, const EncodedAudioFrame& frame);

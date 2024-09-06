@@ -17,7 +17,7 @@
 
 float adjustLerpTimeDelta(float dt);
 
-class $modify(GlobedGJBGL, GJBaseGameLayer) {
+struct GLOBED_DLL GlobedGJBGL : geode::Modify<GlobedGJBGL, GJBaseGameLayer> {
     struct Fields {
         // setup stuff
         bool globedReady = false;
@@ -77,8 +77,8 @@ class $modify(GlobedGJBGL, GJBaseGameLayer) {
     $override
     int checkCollisions(PlayerObject* player, float dt, bool p2);
 
-    $override
-    void loadLevelSettings();
+    // $override
+    // void loadLevelSettings();
 
     $override
     void updateCamera(float dt);

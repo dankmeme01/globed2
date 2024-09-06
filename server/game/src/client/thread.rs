@@ -1,6 +1,5 @@
 use std::{
     collections::VecDeque,
-    io::ErrorKind,
     net::SocketAddrV4,
     sync::{
         atomic::{AtomicBool, AtomicI32, AtomicU16, AtomicU32, Ordering},
@@ -60,6 +59,7 @@ pub struct ClientThread {
     pub level_id: AtomicLevelId,
     pub on_unlisted_level: AtomicBool,
     pub room_id: AtomicU32,
+    pub link_code: AtomicU32,
 
     pub account_data: SyncMutex<PlayerAccountData>,
     pub user_entry: SyncMutex<ServerUserEntry>,
@@ -122,6 +122,7 @@ impl ClientThread {
             level_id: thread.level_id,
             on_unlisted_level: thread.on_unlisted_level,
             room_id: thread.room_id,
+            link_code: thread.link_code,
 
             account_data: SyncMutex::new(account_data),
             user_entry: SyncMutex::new(user_entry),
@@ -235,6 +236,11 @@ impl ClientThread {
 
     pub fn authenticated(&self) -> bool {
         self.account_id.load(Ordering::Relaxed) != 0
+    }
+
+    // shorthand for checking if user has mod perms, and is authorized
+    pub fn can_moderate(&self) -> bool {
+        self.is_authorized_user.load(Ordering::Relaxed) && self.user_role.lock().can_moderate()
     }
 
     /// schedule the thread to terminate as soon as possible.
@@ -443,6 +449,7 @@ impl ClientThread {
             RequestLevelListPacket::PACKET_ID => self.handle_request_level_list(&mut data).await,
             RequestPlayerCountPacket::PACKET_ID => self.handle_request_player_count(&mut data).await,
             UpdatePlayerStatusPacket::PACKET_ID => self.handle_set_player_status(&mut data).await,
+            LinkCodeRequestPacket::PACKET_ID => self.handle_link_code_request(&mut data).await,
 
             /* game related */
             RequestPlayerProfilesPacket::PACKET_ID => self.handle_request_profiles(&mut data).await,

@@ -41,7 +41,6 @@ void TwoPlayerModeModule::updateFromLockedPlayer(PlayerObject* player, bool igno
     if (!cvp) return;
 
     RemotePlayer* rp = cvp->getRemotePlayer();
-    log::debug("update from locked {}, death: {}", rp->getAccountData().name, rp->lastFrameFlags.pendingDeath);
 
     if (rp->lastFrameFlags.pendingDeath) {
         Loader::get()->queueInMainThread([] {
@@ -58,9 +57,7 @@ EventOutcome TwoPlayerModeModule::resetLevel() {
     auto pl = this->getPlayLayer();
     if (!pl || !this->linked) return EventOutcome::Continue;
 
-    bool indp = pl->m_fields->insideDestroyPlayer;
-
-    if (gameLayer->m_fields->setupWasCompleted && !indp) {
+    if (gameLayer->m_fields->setupWasCompleted && gameLayer->m_fields->isManuallyResettingLevel) {
         pl->forceKill(isPrimary ? pl->m_player1 : pl->m_player2);
         return EventOutcome::Halt;
     }
@@ -81,9 +78,9 @@ EventOutcome TwoPlayerModeModule::destroyPlayerPre(PlayerObject* player, GameObj
         }
     }
 
-    // if deathlink or 2p mode is enabled, toggle faster reset off
+    // if deathlink or 2p mode is enabled, toggle faster reset depending on room setting
     this->oldFastReset = util::gd::variable(GameVariable::FastRespawn);
-    util::gd::setVariable(GameVariable::FastRespawn, false);
+    util::gd::setVariable(GameVariable::FastRespawn, this->gameLayer->m_fields->roomSettings.fasterReset);
 
     return EventOutcome::Continue;
 }

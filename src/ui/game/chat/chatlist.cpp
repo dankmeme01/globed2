@@ -6,7 +6,7 @@
 #include <managers/settings.hpp>
 #include <util/ui.hpp>
 #include <util/misc.hpp>
-#include <data/packets/all.hpp>
+#include <data/packets/client/game.hpp>
 //#include <ui/game/chat_overlay/overlay.hpp>
 
 using namespace geode::prelude;

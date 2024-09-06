@@ -17,6 +17,7 @@ pub struct RoomSettings {
     pub flags: RoomSettingsFlags,
     pub player_limit: u16,
     pub level_id: LevelId,
+    pub faster_reset: bool,
 }
 
 #[derive(Clone, Encodable, Decodable, StaticSize, DynamicSize)]

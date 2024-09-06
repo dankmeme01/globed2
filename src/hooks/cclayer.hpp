@@ -5,9 +5,8 @@
 
 #include <Geode/modify/CCLayer.hpp>
 
-class $modify(HookedCCLayer, cocos2d::CCLayer) {
+struct GLOBED_DLL HookedCCLayer : geode::Modify<HookedCCLayer, cocos2d::CCLayer> {
     void onEnter();
-    void onExit();
 };
 
 #endif // GEODE_IS_WINDOWS

@@ -128,8 +128,10 @@ impl ClientThread {
         // remove the player from the previously connected room (or the global room)
         self.game_server.state.room_manager.remove_with_any(old_room_id, account_id, level_id);
 
+        let is_invisible = self.privacy_settings.lock().get_hide_in_game();
+
         self.game_server.state.room_manager.with_any(packet.room_id, |pm| {
-            pm.manager.create_player(account_id);
+            pm.manager.create_player(account_id, is_invisible);
 
             // if we are in any level, clean transition to there
             if level_id != 0 {
@@ -250,10 +252,15 @@ impl ClientThread {
         self.send_packet_dynamic(&pkt).await
     });
 
-    gs_handler!(self, handle_close_room, CloseRoomPacket, _packet, {
+    gs_handler!(self, handle_close_room, CloseRoomPacket, packet, {
         let account_id = gs_needauth!(self);
 
-        let room_id = self.room_id.load(Ordering::Relaxed);
+        // use the provided room id or the current room if 0
+        let mut room_id = packet.room_id;
+        if room_id == 0 {
+            room_id = self.room_id.load(Ordering::Relaxed);
+        }
+
         if room_id == 0 {
             return self._respond_with_room_list(room_id, false).await;
         }
@@ -262,7 +269,7 @@ impl ClientThread {
             room_id,
             |room| {
                 // we can only close a room if we are the creator or if we are a mod
-                if room.owner != account_id && !self.user_role.lock().can_moderate() {
+                if room.owner != account_id && !self.can_moderate() {
                     return Vec::new();
                 }
 
@@ -332,18 +339,24 @@ impl ClientThread {
             self.game_server.broadcast_room_info(room_id).await;
         }
 
+        let is_invisible = self.privacy_settings.lock().get_hide_in_game();
+
         // add them to the global room
-        self.game_server.state.room_manager.get_global().manager.create_player(account_id);
+        self.game_server
+            .state
+            .room_manager
+            .get_global()
+            .manager
+            .create_player(account_id, is_invisible);
     }
 
     #[inline]
     async fn _respond_with_room_list(&self, room_id: u32, just_joined: bool) -> crate::client::Result<()> {
         let room_info = self.game_server.state.room_manager.with_any(room_id, |room| room.get_room_info(room_id));
 
-        let can_moderate = self.user_role.lock().can_moderate();
         let players = self
             .game_server
-            .get_room_player_previews(room_id, self.account_id.load(Ordering::Relaxed), can_moderate);
+            .get_room_player_previews(room_id, self.account_id.load(Ordering::Relaxed), self.can_moderate());
 
         if just_joined {
             self.send_packet_dynamic(&RoomJoinedPacket { room_info, players }).await

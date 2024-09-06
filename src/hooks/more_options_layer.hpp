@@ -5,7 +5,7 @@
 
 #ifdef GEODE_IS_ANDROID
 
-class $modify(HookedMoreOptionsLayer, MoreOptionsLayer) {
+struct GLOBED_DLL HookedMoreOptionsLayer : geode::Modify<HookedMoreOptionsLayer, MoreOptionsLayer> {
     struct Fields {
         Ref<CCMenuItemSpriteExtra> adminBtn = nullptr;
     };

@@ -57,3 +57,12 @@ class UpdatePlayerStatusPacket : public Packet {
 };
 
 GLOBED_SERIALIZABLE_STRUCT(UpdatePlayerStatusPacket, (flags));
+
+// 11005 - LinkCodeRequestPacket
+class LinkCodeRequestPacket : public Packet {
+    GLOBED_PACKET(11005, LinkCodeRequestPacket, false, false);
+
+    LinkCodeRequestPacket() {}
+};
+
+GLOBED_SERIALIZABLE_STRUCT(LinkCodeRequestPacket, ());

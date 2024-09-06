@@ -39,3 +39,7 @@ void AdminManager::openUserPopup(const PlayerRoomPreviewAccountData& rpdata) {
         });
     }, [](auto) {})->show();
 }
+
+bool AdminManager::canModerate() {
+    return this->authorized() && role.canModerate();
+}

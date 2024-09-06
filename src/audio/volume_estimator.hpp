@@ -6,7 +6,7 @@
 #include "sample_queue.hpp"
 #include <util/collections.hpp>
 
-class VolumeEstimator {
+class GLOBED_DLL VolumeEstimator {
 public:
     VolumeEstimator(size_t sampleRate);
     VolumeEstimator();

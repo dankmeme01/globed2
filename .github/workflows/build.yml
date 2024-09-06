@@ -35,7 +35,7 @@ jobs:
         with:
           combine: true
           cli: "latest"
-          sdk: 'latest'
+          sdk: 'nightly'
           target: ${{ matrix.config.target }}
           configure-args: '-DGLOBED_RELEASE=ON'
 

@@ -329,6 +329,7 @@ void ComplexVisualPlayer::updateData(
     if (!shouldBeVisible) {
         playerIcon->m_playEffects = false;
         if (playerIcon->m_regularTrail) playerIcon->m_regularTrail->setVisible(false);
+        if (playerIcon->m_shipStreak) playerIcon->m_shipStreak->setVisible(false);
     }
 }
 
@@ -437,6 +438,7 @@ void ComplexVisualPlayer::setForciblyHidden(bool state) {
         if (playerIcon->m_regularTrail) playerIcon->m_regularTrail->setVisible(false);
         if (playerIcon->m_waveTrail) playerIcon->m_waveTrail->setVisible(false);
         if (playerIcon->m_ghostTrail) playerIcon->m_ghostTrail->setVisible(false);
+        if (playerIcon->m_shipStreak) playerIcon->m_shipStreak->setVisible(false);
     }
 
     isForciblyHidden = state;
@@ -619,6 +621,8 @@ void ComplexVisualPlayer::updateOpacity() {
     playerIcon->setOpacity(opacity);
     playerIcon->m_spiderSprite->GJRobotSprite::setOpacity(opacity);
     playerIcon->m_robotSprite->GJRobotSprite::setOpacity(opacity);
+    if (playerIcon->m_shipStreak) playerIcon->m_shipStreak->setOpacity(opacity);
+    if (playerIcon->m_regularTrail) playerIcon->m_regularTrail->setOpacity(opacity);
 
     // set name opacity too if hideNearby is enabled
     if (settings.players.hideNearby) {

@@ -27,3 +27,9 @@ pub struct LevelPlayerCountPacket {
 pub struct RolesUpdatedPacket {
     pub special_user_data: SpecialUserData,
 }
+
+#[derive(Packet, Encodable, StaticSize)]
+#[packet(id = 21004)]
+pub struct LinkCodeResponsePacket {
+    pub link_code: u32,
+}

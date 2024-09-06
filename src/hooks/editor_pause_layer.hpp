@@ -4,7 +4,7 @@
 #include <Geode/modify/EditorPauseLayer.hpp>
 
 // Defines globed-related EditorPauseLayer hooks
-class $modify(GlobedEditorPauseLayer, EditorPauseLayer) {
+struct GLOBED_DLL GlobedEditorPauseLayer : geode::Modify<GlobedEditorPauseLayer, EditorPauseLayer> {
     // callbacks
 
     $override

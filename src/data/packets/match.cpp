@@ -1,4 +1,4 @@
-#include "all.hpp"
+#include "all.hpp" // include all packets
 
 #define PACKET(pt) case pt::PACKET_ID: return std::make_shared<pt>()
 
@@ -28,6 +28,7 @@ std::shared_ptr<Packet> matchPacket(packetid_t packetId) {
         PACKET(LevelListPacket);
         PACKET(LevelPlayerCountPacket);
         PACKET(RolesUpdatedPacket);
+        PACKET(LinkCodeResponsePacket);
 
         // game related
 

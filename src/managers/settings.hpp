@@ -16,6 +16,7 @@ public:
     // Save all settings to the geode save container
     void save();
 
+    // T -> T, but float -> globed::ConstexprFloat, as floats cant be used as template arguments
     template <typename T>
     using TypeFixup = std::conditional_t<std::is_same_v<T, float>, globed::ConstexprFloat, T>;
 
@@ -156,6 +157,9 @@ public:
 
         // hidden settings! no settings ui for them
 
+        Setting<bool, true> changelogPopups;
+        Setting<bool, false> pinnedLevelCollapsed;
+
         /* privacy settings */
         Setting<bool, false> isInvisible;
         Setting<bool, false> noInvites;
@@ -212,12 +216,12 @@ public:
     };
 
     struct Flags {
-        Flag seenSignupNotice;
+        Flag seenSignupNotice;       // Obsolete
         Flag seenSignupNoticev2;
         Flag seenVoiceChatPTTNotice;
         Flag seenTeleportNotice;
-        Flag seenAprilFoolsNotice;
-        Flag seenStatusNotice;
+        Flag seenAprilFoolsNotice;   // Obsolete
+        Flag seenStatusNotice;       // Obsolete
     };
 
     Globed globed;
@@ -288,8 +292,13 @@ public:
 /* Enable reflection */
 
 GLOBED_SERIALIZABLE_STRUCT(GlobedSettings::Globed, (
+<<<<<<< HEAD
     autoconnect, tpsCap, preloadAssets, deferPreloadAssets, invitesFrom, editorSupport, increaseLevelList, fragmentationLimit, compressedPlayerCount, useDiscordRPC, playerCountOnLvlPage,
     changelogPopups,
+=======
+    autoconnect, tpsCap, preloadAssets, deferPreloadAssets, invitesFrom, editorSupport, increaseLevelList, fragmentationLimit, compressedPlayerCount, useDiscordRPC,
+    changelogPopups, pinnedLevelCollapsed,
+>>>>>>> 4d4856434ea805dda6a29cef54c197a36afc17e0
     isInvisible, noInvites, hideInGame, hideRoles
 ));
 

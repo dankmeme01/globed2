@@ -11,10 +11,10 @@ ip_header = false
 form = "1KiB"
 data-form = "1KiB"
 file = "1KiB"
-json = "1KiB"
+json = "1MiB"
 msgpack = "1KiB"
 
-string = "2KiB"
+string = "1MiB"
 bytes = "8KiB"
 
 # Database setup
