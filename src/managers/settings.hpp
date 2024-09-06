@@ -292,13 +292,8 @@ public:
 /* Enable reflection */
 
 GLOBED_SERIALIZABLE_STRUCT(GlobedSettings::Globed, (
-<<<<<<< HEAD
-    autoconnect, tpsCap, preloadAssets, deferPreloadAssets, invitesFrom, editorSupport, increaseLevelList, fragmentationLimit, compressedPlayerCount, useDiscordRPC, playerCountOnLvlPage,
-    changelogPopups,
-=======
     autoconnect, tpsCap, preloadAssets, deferPreloadAssets, invitesFrom, editorSupport, increaseLevelList, fragmentationLimit, compressedPlayerCount, useDiscordRPC,
-    changelogPopups, pinnedLevelCollapsed,
->>>>>>> 4d4856434ea805dda6a29cef54c197a36afc17e0
+    changelogPopups, pinnedLevelCollapsed, playerCountOnLvlPage
     isInvisible, noInvites, hideInGame, hideRoles
 ));
 
