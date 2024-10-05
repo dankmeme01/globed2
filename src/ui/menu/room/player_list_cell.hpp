@@ -5,7 +5,7 @@
 
 class GlobedSimplePlayer;
 
-class PlayerListCell : public cocos2d::CCLayer {
+class GLOBED_DLL PlayerListCell : public cocos2d::CCLayer {
 public:
     static constexpr float CELL_HEIGHT = 30.0f;
 

@@ -5,7 +5,7 @@
 
 #include <managers/web.hpp>
 
-class GlobedMenuLayer : public cocos2d::CCLayer {
+class GLOBED_DLL GlobedMenuLayer : public cocos2d::CCLayer {
 public:
     static constexpr float LIST_WIDTH = 358.f;
     static constexpr float LIST_HEIGHT = 220.f;

@@ -11,7 +11,7 @@ class RoomJoinedPacket;
 class RoomInfoPacket;
 class RoomInfo;
 
-class RoomLayer : public cocos2d::CCLayer, public LevelDownloadDelegate, public LevelManagerDelegate {
+class GLOBED_DLL RoomLayer : public cocos2d::CCLayer, public LevelDownloadDelegate, public LevelManagerDelegate {
 public:
     cocos2d::CCSize popupSize;
     cocos2d::CCSize listSize;

@@ -20,7 +20,7 @@ struct GLOBED_DLL ComplexPlayerObject : geode::Modify<ComplexPlayerObject, Playe
 };
 
 // Unlike `ComplexPlayerObject`, this one is made specifically for vanilla player objects, so it is a separate $modify class.
-class $modify(HookedPlayerObject, PlayerObject) {
+struct GLOBED_DLL HookedPlayerObject : geode::Modify<HookedPlayerObject, PlayerObject> {
     struct Fields {
         bool forcedPlatFlag = false;
     };

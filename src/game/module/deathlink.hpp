@@ -1,8 +1,9 @@
 #pragma once
 
 #include "base.hpp"
+#include <defs/platform.hpp>
 
-class DeathlinkModule : public BaseGameplayModule {
+class GLOBED_DLL DeathlinkModule : public BaseGameplayModule {
 public:
     DeathlinkModule(GlobedGJBGL* gameLayer) : BaseGameplayModule(gameLayer) {}
 

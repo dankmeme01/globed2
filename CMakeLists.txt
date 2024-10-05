@@ -81,8 +81,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if (NOT MSVC)
         set(GLOBED_WINDOWS_CLANG ON)
     endif()
-
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 # export some symbols

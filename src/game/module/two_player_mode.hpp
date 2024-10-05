@@ -2,8 +2,9 @@
 
 #include "base.hpp"
 #include <Geode/loader/Mod.hpp> // for _spr
+#include <defs/platform.hpp>
 
-class TwoPlayerModeModule : public BaseGameplayModule {
+class GLOBED_DLL TwoPlayerModeModule : public BaseGameplayModule {
 public:
     TwoPlayerModeModule(GlobedGJBGL* gameLayer);
 

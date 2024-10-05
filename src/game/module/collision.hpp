@@ -1,8 +1,9 @@
 #pragma once
 
 #include "base.hpp"
+#include <defs/platform.hpp>
 
-class CollisionModule : public BaseGameplayModule {
+class GLOBED_DLL CollisionModule : public BaseGameplayModule {
 public:
     CollisionModule(GlobedGJBGL* gameLayer) : BaseGameplayModule(gameLayer) {}
 

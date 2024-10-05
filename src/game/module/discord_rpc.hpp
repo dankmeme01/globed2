@@ -1,8 +1,9 @@
 #pragma once
 
 #include "base.hpp"
+#include <defs/platform.hpp>
 
-class DiscordRpcModule : public BaseGameplayModule {
+class GLOBED_DLL DiscordRpcModule : public BaseGameplayModule {
 public:
     DiscordRpcModule(GlobedGJBGL* gameLayer) : BaseGameplayModule(gameLayer) {}
 
