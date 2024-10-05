@@ -11,6 +11,7 @@ struct GLOBED_DLL HookedLevelInfoLayer : geode::Modify<HookedLevelInfoLayer, Lev
     struct Fields {
         bool allowOpeningAnyway = false;
         int rateTier = -1;
+        Ref<cocos2d::CCLabelBMFont> playerCountLabel;
     };
 
     $override
@@ -27,4 +28,8 @@ struct GLOBED_DLL HookedLevelInfoLayer : geode::Modify<HookedLevelInfoLayer, Lev
     void addLevelSendButton();
 
     void addRoomLevelButton();
+
+    void addPlayerCountLabel();
+    void updatePlayerCount(int);
+    void scheduledPlayerCountUpdate(float);
 };

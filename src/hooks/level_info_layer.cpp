@@ -4,10 +4,11 @@
 #include <hooks/gjbasegamelayer.hpp>
 #include <managers/daily_manager.hpp>
 #include <managers/admin.hpp>
-// todo remove (maybe)
 #include <managers/room.hpp>
+#include <managers/settings.hpp>
 #include <data/packets/client/room.hpp>
-// end todo
+#include <data/packets/client/general.hpp>
+#include <data/packets/server/general.hpp>
 #include <net/manager.hpp>
 #include <ui/menu/level_list/level_list_layer.hpp>
 #include <ui/menu/featured/edit_featured_level_popup.hpp>
@@ -31,6 +32,20 @@ bool HookedLevelInfoLayer::init(GJGameLevel* level, bool challenge) {
     auto& rm = RoomManager::get();
     if (rm.isInRoom() && rm.isOwner()) {
         this->addRoomLevelButton();
+    }
+
+    std::vector<LevelId> levelIds;
+    levelIds.push_back(level->m_levelID);
+
+    auto& nm = NetworkManager::get();
+    if (nm.established() && GlobedSettings::get().globed.playerCountOnLvlPage) {
+        this->addPlayerCountLabel();
+        nm.send(RequestPlayerCountPacket::create(std::move(levelIds)));
+        nm.addListener<LevelPlayerCountPacket>(this, [this](std::shared_ptr<LevelPlayerCountPacket> packet) {
+            auto [levelId, playerCount] = packet->levels[0];
+            this->updatePlayerCount(playerCount);
+        });
+        this->schedule(schedule_selector(HookedLevelInfoLayer::scheduledPlayerCountUpdate), 5.0f);
     }
 
     // i hate myself
@@ -148,4 +163,43 @@ void HookedLevelInfoLayer::addRoomLevelButton() {
         .parent(rightMenu);
 
     rightMenu->updateLayout();
+}
+
+void HookedLevelInfoLayer::addPlayerCountLabel() {
+    auto creatorName = this->getChildByIDRecursive("creator-name");
+    if (!creatorName) return;
+
+    auto creatorYPos = creatorName->convertToWorldSpace(CCPointZero).y;
+
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    Build<CCLabelBMFont>::create("0 players", "goldFont.fnt")
+        .pos(winSize.width / 2, creatorYPos - 8.f)
+        .parent(this)
+        .scale(0.5f)
+        .id("player-count"_spr)
+        .visible(false)
+        .store(m_fields->playerCountLabel);
+}
+
+void HookedLevelInfoLayer::updatePlayerCount(int playerCount) {
+    if (!m_fields->playerCountLabel) return;
+    if (playerCount == 0) {
+        m_fields->playerCountLabel->setVisible(false);
+        return;
+    }
+    m_fields->playerCountLabel->setVisible(true);
+    m_fields->playerCountLabel->setString(fmt::format(
+        "{} {}",
+        playerCount, playerCount == 1 ? "player" : "players"
+    ).c_str());
+}
+
+void HookedLevelInfoLayer::scheduledPlayerCountUpdate(float) {
+    std::vector<LevelId> levelIds;
+    levelIds.push_back(m_level->m_levelID);
+
+    auto& nm = NetworkManager::get();
+    if (nm.established()) {
+        nm.send(RequestPlayerCountPacket::create(std::move(levelIds)));
+    }
 }
